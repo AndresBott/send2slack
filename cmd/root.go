@@ -35,8 +35,7 @@ usage samples:
   why so serious :smile:
   EOF
 `,
-	Use:  "send2slack <message>",
-	Args: cobra.ExactArgs(1),
+	Use: "send2slack <message>",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		slack := send2slack.NewSlackMsg(cfg.Token)

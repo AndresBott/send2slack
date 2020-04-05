@@ -6,7 +6,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-const Version = "0.1.0"
+const Version = "0.1.1"
 
 type slackmsg struct {
 	client  *slack.Client
