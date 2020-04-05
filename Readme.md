@@ -22,8 +22,18 @@ the configuration for now is quite simple and only contains:
     token: "<slack token goes here>"
     default_channel: "general"
     
-you will need to use the "OAuth Access Token" as the "Bot User OAuth Access Token" does not have enough access to send
-messages to other channels
+### slack app
+this is the minimu needed to create the oauth token
+
+1 go to https://api.slack.com/apps
+
+2 Create a new app with the following Scopes:
+  - Bot Token Scopes:
+      - chat:write
+      - chat:write.customize
+      - chat:write.public
+      
+3 use the "Bot User OAuth Access Token" in the configuration 
 
 # Sample usage
 

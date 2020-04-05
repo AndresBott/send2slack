@@ -1,0 +1,35 @@
+project_name: send2slack
+before:
+  hooks:
+#    - go mod tidy
+
+env_files:
+  github_token: ~/.goreleaser/github-token
+
+builds:
+  -
+    id: "send2slack"
+    binary: send2slack
+    main: ./send2slack.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+archives:
+  - name_template: '{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}'
+    format: zip
+    files:
+      - Readme.md
+      - LICENSE
+      - sample.config.yaml
+
+checksum:
+  name_template: '{{ .ProjectName }}-checksums.txt'
+
+release:
+  name_template: 'v{{ .Version }}'
+  prerelease: false
+
