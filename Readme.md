@@ -21,9 +21,10 @@ the configuration for now is quite simple and only contains:
     ---
     token: "<slack token goes here>"
     default_channel: "general"
+    sendmail_channel: "mails"
     
 ### slack app
-this is the minimu needed to create the oauth token
+this is the minimum needed to create the oauth token
 
 1 go to https://api.slack.com/apps
 
@@ -76,3 +77,8 @@ here documents:
     > • *bold text*
     > • _italic text_
     EOF
+    
+## sendmail replacement
+
+if the binary is renamed to sendmail ( or symlink to a renamed ) the command line parameters will be ignored and it 
+will accept emails on stdin that will be forwarded to channel configured with "sendmail_channel"

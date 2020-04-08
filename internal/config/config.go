@@ -5,8 +5,9 @@ import (
 )
 
 type Cfg struct {
-	Token      string
-	DefChannel string
+	Token           string
+	DefChannel      string
+	SendmailChannel string
 }
 
 func NewConfig() (*Cfg, error) {
@@ -22,8 +23,9 @@ func NewConfig() (*Cfg, error) {
 	}
 
 	cfg := Cfg{
-		Token:      viper.GetString("token"),
-		DefChannel: viper.GetString("default_channel"),
+		Token:           viper.GetString("token"),
+		DefChannel:      viper.GetString("default_channel"),
+		SendmailChannel: viper.GetString("sendmail_channel"),
 	}
 	return &cfg, nil
 }
