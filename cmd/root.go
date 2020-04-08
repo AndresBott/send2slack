@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -54,7 +53,6 @@ func Run() {
 
 	binName := filepath.Base(os.Args[0])
 
-	spew.Dump(os.Getenv("SENDMAIL"))
 	if binName == "sendmail" || os.Getenv("SENDMAIL") == "debug" {
 		// sendmail mode
 		Sendmail()
