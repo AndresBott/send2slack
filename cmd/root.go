@@ -34,7 +34,7 @@ usage samples:
 
   send2slack -c red <<EOF
   why so serious :smile:
-  EOF
+  EOF7
 
 if this binary is renamed to sendmail (i.e. /usr/sbin/sendmail) it will ignore commandline parameters, 
 but still send the stdin to slack, to the configured channel 
