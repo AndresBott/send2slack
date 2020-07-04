@@ -2,61 +2,62 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
-	"send2slack/internal/config"
+
 	"send2slack/internal/send2slack"
 )
 
-var cfg *config.Cfg
-var color string
-var channel string
-
-func init() {
-
-	var err error
-	cfg, err = config.NewConfig()
-	HandleErr(err)
-
-	rootCmd.Flags().StringVarP(&channel, "channel", "d", cfg.DefChannel, "destination channel to send the message")
-	rootCmd.Flags().StringVarP(&color, "color", "c", "", "color")
-}
-
-var rootCmd = &cobra.Command{
-	Short: "Send messages to a slack channel",
-	Long: ` - send2slack v` + send2slack.Version + ` -
-Send messages to a slack channel either by inline message or by input stream.
-send2slack supports hex based colors like #ff00ff or the following shortcuts:red, green, blue, range, lime
-usage samples:
-
-  send2slack -c red -d general '<!here> Warning the silence is among us' // ! note the single quotes
-
-  send2slack -c red <<EOF
-  why so serious :smile:
-  EOF7
-
-if this binary is renamed to sendmail (i.e. /usr/sbin/sendmail) it will ignore commandline parameters, 
-but still send the stdin to slack, to the configured channel 
-
-`,
-	Use: "send2slack <message>",
-	Run: func(cmd *cobra.Command, args []string) {
-		send2SlackCli(cmd, args)
-	},
-	FParseErrWhitelist: cobra.FParseErrWhitelist{
-		UnknownFlags: true,
-	},
-}
+//var cfg *config.Cfg
+//
+//
+//func init() {
+//
+//	var err error
+//	cfg, err = config.NewConfig()
+//	HandleErr(err)
+//
+//
+//}
 
 func Run() {
 
-	binName := filepath.Base(os.Args[0])
+	cfg, err := send2slack.NewConfig()
+	HandleErr(err)
 
+	spew.Dump(cfg)
+
+	binName := filepath.Base(os.Args[0])
+	// handle the case where the app replaces sendmail binary
 	if binName == "sendmail" || os.Getenv("SENDMAIL") == "debug" {
 		// sendmail mode
-		Sendmail()
+		Sendmail() // todo move to s2slack package
 	} else {
+
+		rootCmd := &cobra.Command{
+			Short: "Send messages to slack",
+			Long: ` - send2slack v` + send2slack.Version + ` -
+The send2slack behaves differently depending on configuration and invocation:
+- send2slack can be started as http server to receive json payloads that will be delivered to slack
+- TODO: can be started as file watcher, and all changes will be sent to slack ( /var/mail )
+- a cli that sends json payloads to the json server
+- a cli that (given the corresponding configuration) can send the messages directly without the server
+- is a sendmail binary replacement, it accepts input streams in mail format to be sent to slack
+`,
+			Use: "send2slack (message)",
+			Run: func(cmd *cobra.Command, args []string) {
+				fmt.Println("send2slack")
+				//send2SlackCli(cmd, args)
+			},
+			FParseErrWhitelist: cobra.FParseErrWhitelist{
+				UnknownFlags: true,
+			},
+		}
+
+		rootCmd.AddCommand(serverCmd())
+
 		// normal cli mode
 		if err := rootCmd.Execute(); err != nil {
 			fmt.Println(err)
@@ -65,47 +66,23 @@ func Run() {
 	}
 }
 
-// send to slack command normally executed, see sendmail for exception
-func send2SlackCli(cmd *cobra.Command, args []string) {
-	slack := send2slack.NewSlackMsg(cfg.Token)
-	slack.Channel = channel
-	var err error
-
-	slack.Detail, err = send2slack.InReader(1000000) // 1MB
-	if err != nil && err.Error() != "io reader not started" {
-		HandleErr(err)
-	}
-
-	slack.Color(color)
-
-	if len(args) > 0 {
-		slack.Text = args[0]
-	}
-	err = slack.SendMsg()
-	if err != nil && err.Error() == "unable to send empty message" {
-		cmd.Help()
-	} else {
-		HandleErr(err)
-	}
-}
-
 // send to slack command executed when the binary is called sendmail or the debug ENV is set.
 // this removes all cobra features and makes send2slack compatible with sendmail by avoiding flag parses
 func Sendmail() {
 	//["/usr/sbin/sendmail", "-FCronDaemon", "-i", "-B8BITMIME", "-oem", "vagrant"]
 
-	var err error
-	slack := send2slack.NewSlackMsg(cfg.Token)
-	slack.Channel = cfg.SendmailChannel
-	slack.Text = ""
-	slack.Detail, err = send2slack.InReader(1000000) // 1MB
-	if err != nil {
-		HandleErr(err)
-	}
-	err = slack.SendMail()
-	if err != nil {
-		HandleErr(err)
-	}
+	//var err error
+	//slack := send2slack.NewSlackMsg(cfg.Token)
+	//slack.Channel = cfg.SendmailChannel
+	//slack.Text = ""
+	//slack.Detail, err = send2slack.InReader(1000000) // 1MB
+	//if err != nil {
+	//	HandleErr(err)
+	//}
+	//err = slack.SendMail()
+	//if err != nil {
+	//	HandleErr(err)
+	//}
 }
 
 func HandleErr(err error) {

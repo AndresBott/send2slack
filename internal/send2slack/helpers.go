@@ -10,6 +10,8 @@ import (
 )
 
 // reads up to max byte size from stdin and returns the content as string
+// exits if it did not get any character after some time, this is used to
+// determine if it has been invoked as part of a script or manually
 func InReader(max int) (string, error) {
 	r := bufio.NewReader(os.Stdin)
 	s := strings.Builder{}

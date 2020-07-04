@@ -1,16 +1,18 @@
-package config
+package send2slack
 
 import (
 	"github.com/spf13/viper"
 )
 
-type Cfg struct {
+const Version = "0.1.2"
+
+type Config struct {
 	Token           string
 	DefChannel      string
 	SendmailChannel string
 }
 
-func NewConfig() (*Cfg, error) {
+func NewConfig() (*Config, error) {
 
 	viper.SetConfigName("config.yaml")       // name of config file (without extension)
 	viper.SetConfigType("yaml")              // REQUIRED if the config file does not have the extension in the name
@@ -22,7 +24,7 @@ func NewConfig() (*Cfg, error) {
 		return nil, err
 	}
 
-	cfg := Cfg{
+	cfg := Config{
 		Token:           viper.GetString("token"),
 		DefChannel:      viper.GetString("default_channel"),
 		SendmailChannel: viper.GetString("sendmail_channel"),
