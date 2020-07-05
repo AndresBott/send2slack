@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/phayes/freeport"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,6 +17,9 @@ import (
 
 func TestStartAndStopServer(t *testing.T) {
 
+	// don't print log messages during tests
+	logrus.SetLevel(logrus.FatalLevel)
+
 	// get a free port
 	port, err := freeport.GetFreePort()
 	if err != nil {
@@ -23,10 +27,13 @@ func TestStartAndStopServer(t *testing.T) {
 	}
 
 	// start the server
-	cfg := send2slack.ServerConfig{
-		Port: port,
+	cfg := send2slack.Config{
+		ListenUrl: ":" + strconv.Itoa(port),
 	}
-	srv := send2slack.NewServer(cfg)
+	srv, err := send2slack.NewServer(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 	srv.StartBackground()
 	// wait for server to start
 	time.Sleep(100 * time.Microsecond)
@@ -39,7 +46,7 @@ func TestStartAndStopServer(t *testing.T) {
 
 		resp, err := http.Get("http://localhost:" + strconv.Itoa(port))
 		if err != nil {
-			print(err)
+			t.Fatal(err)
 		}
 
 		expected := 404
@@ -88,10 +95,13 @@ func TestSeverMessages(t *testing.T) {
 	}
 
 	// start the server
-	cfg := send2slack.ServerConfig{
-		Port: port,
+	cfg := send2slack.Config{
+		ListenUrl: ":" + strconv.Itoa(port),
 	}
-	srv := send2slack.NewServer(cfg)
+	srv, err := send2slack.NewServer(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 	srv.StartBackground()
 	// wait for server to start
 	time.Sleep(200 * time.Microsecond)
@@ -182,4 +192,60 @@ func TestSeverMessages(t *testing.T) {
 	// wait for server to stop
 	time.Sleep(100 * time.Microsecond)
 
+}
+
+type ParseListenAddressTc struct {
+	name        string
+	in          string
+	expectedErr string
+	expected    string
+}
+
+func TestParseListenAddress(t *testing.T) {
+	tcs := []ParseListenAddressTc{
+		{
+			name:        "only port",
+			in:          ":123",
+			expectedErr: "",
+			expected:    ":123",
+		},
+		{
+			name:        "ip and port port",
+			in:          "127.0.0.1:123",
+			expectedErr: "",
+			expected:    "127.0.0.1:123",
+		},
+		{
+			name:        "wrong port",
+			in:          ":bla",
+			expectedErr: "unable to parse port",
+			expected:    "",
+		},
+		{
+			name:        "wrong port with an ip",
+			in:          "127.0.0.1:bla",
+			expectedErr: "unable to parse port",
+			expected:    "",
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			host, port, err := send2slack.ParseListenAddress(tc.in)
+			out := host + ":" + strconv.Itoa(port)
+			if tc.expectedErr != "" {
+				if err != nil {
+					if err.Error() != tc.expectedErr {
+						t.Errorf("unexpected error, got \"%s\", expected \"%s\"", err.Error(), tc.expectedErr)
+					}
+				} else {
+					t.Errorf("expecting error but not got, expected %s", tc.expectedErr)
+				}
+			} else {
+				if out != tc.expected {
+					t.Errorf("unexpected output, got \"%s\" expected \"%s\"", out, tc.expected)
+				}
+			}
+		})
+	}
 }

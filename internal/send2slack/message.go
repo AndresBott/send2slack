@@ -13,31 +13,26 @@ type Message struct {
 	Channel string
 	Text    string
 	Detail  string
-	color   string
+	Color   string
 	Debug   bool
 	Att     *slack.Attachment
 }
 
 // set the color of the message attachment field
-func (m *Message) Color(color string) {
-	switch color {
+func (m *Message) getColor() string {
+	switch m.Color {
 	case "red":
-		m.color = "#FF5640"
-		break
+		return "#FF5640"
 	case "green":
-		m.color = "#2eb886"
-		break
+		return "#2eb886"
 	case "orange":
-		m.color = "#FF9C40"
-		break
+		return "#FF9C40"
 	case "blue":
-		m.color = "#3270A5"
-		break
+		return "#3270A5"
 	case "lime":
-		m.color = "#B3EE3C"
-		break
+		return "#B3EE3C"
 	default:
-		m.color = color
+		return m.Color
 	}
 }
 
@@ -132,11 +127,11 @@ func NewMessageFromMailStr(in string, tpl string) (*Message, error) {
 
 	// check for a header "color"
 	if c := getMapString(m.Headers, "color"); c != "" {
-		msg.Color(c)
+		msg.Color = c
 	} else if c := getMapString(m.Headers, "x-slack-color"); c != "" {
-		msg.Color(c)
+		msg.Color = c
 	} else {
-		msg.Color("blue")
+		msg.Color = "blue"
 	}
 
 	return &msg, nil

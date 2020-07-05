@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"send2slack/internal/send2slack"
 	"strings"
 	"testing"
@@ -67,14 +68,16 @@ func TestClient(t *testing.T) {
 			}))
 			defer ts.Close()
 
-			c, err := send2slack.NewClient(send2slack.ClientConfig{
-				Url: ts.URL,
+			u, _ := url.ParseRequestURI(ts.URL)
+			c, err := send2slack.NewSender(&send2slack.Config{
+				URL:  u,
+				Mode: send2slack.ModeClientCli,
 			})
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			err = c.Send(test.msg)
+			err = c.SendMessage(&test.msg)
 			//expecting an error
 			if test.errorString != "" {
 				if err == nil {
