@@ -21,8 +21,9 @@ const (
 const DefaultPort = 4789
 
 type Config struct {
-	IsDefault       bool     // set to true if no configuration file could be loaded
-	ListenUrl       string   // used by the server, listen address
+	IsDefault       bool   // set to true if no configuration file could be loaded
+	ListenUrl       string // used by the server, listen address
+	WatchDir        string
 	URL             *url.URL // used by the client, send url
 	Token           string
 	DefChannel      string

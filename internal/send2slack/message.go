@@ -50,6 +50,12 @@ func (m *Message) Validate() error {
 	return nil
 }
 
+// ReadMbox reads exactly the last message from an mbox file, if it is no more messages available to read
+// bool true will be returned
+func ReadMbox(file string, tpl string) (*Message, bool, error) {
+
+}
+
 // takes a string input that is expected to be a plain text email and transforms this to a slack message
 // using a template to from the main slack message
 // example template usage:

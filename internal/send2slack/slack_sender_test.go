@@ -69,7 +69,7 @@ func TestClient(t *testing.T) {
 			defer ts.Close()
 
 			u, _ := url.ParseRequestURI(ts.URL)
-			c, err := send2slack.NewSender(&send2slack.Config{
+			c, err := send2slack.NewSlackSender(&send2slack.Config{
 				URL:  u,
 				Mode: send2slack.ModeClientCli,
 			})

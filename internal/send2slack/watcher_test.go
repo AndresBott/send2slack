@@ -1,1 +1,0 @@
-package send2slack_test

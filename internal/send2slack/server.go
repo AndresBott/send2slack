@@ -14,7 +14,7 @@ import (
 type Server struct {
 	listen      string
 	sever       *http.Server
-	slackSender *Sender
+	slackSender MessageSender
 	running     int32
 	done        chan interface{}
 }
@@ -33,7 +33,7 @@ func NewServer(cfg *Config) (*Server, error) {
 	done := make(chan interface{}, 1)
 
 	cfg.Mode = ModeDirectCli
-	sender, err := NewSender(cfg)
+	sender, err := NewSlackSender(cfg)
 	if err != nil {
 		return nil, err
 	}

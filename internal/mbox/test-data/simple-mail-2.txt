@@ -1,0 +1,11 @@
+From www-data@amelia.com  Thu Dec 21 05:00:01 2017
+From: root@amelia.com (Cron Daemon)
+To: www-data@amelia.com
+
+This email is slightly different
+
+
+
+and contains some empty lines as well as ending on empty lines
+
+

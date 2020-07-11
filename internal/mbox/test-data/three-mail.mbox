@@ -1,0 +1,64 @@
+From www-data@amelia.com  Sun Jul  2 05:00:02 2017
+Return-Path: <www-data@amelia.com>
+X-Original-To: www-data
+Delivered-To: www-data@amelia.com
+Received: by amelia.com (Postfix, from userid 33)
+        id 22B98393; Sun,  2 Jul 2017 05:00:02 +0200 (CEST)
+From: root@amelia.com (Cron Daemon)
+To: www-data@amelia.com
+Subject: Cron <www-data@amelia> test -x /usr/share/roundcube/bin/cleandb.sh && /usr/share/roundcube/bin/cleandb.sh >/dev/null
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/var/www>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=www-data>
+Message-Id: <20170702030002.22B98393@amelia.com>
+Date: Sun,  2 Jul 2017 05:00:02 +0200 (CEST)
+
+Email 1
+
+From www-data@amelia.com  Mon Jul  3 05:00:02 2017
+Return-Path: <www-data@amelia.com>
+X-Original-To: www-data
+Delivered-To: www-data@amelia.com
+Received: by amelia.com (Postfix, from userid 33)
+        id 02DD6AD7C; Mon,  3 Jul 2017 05:00:01 +0200 (CEST)
+From: root@amelia.com (Cron Daemon)
+To: www-data@amelia.com
+Subject: Cron <www-data@amelia> test -x /usr/share/roundcube/bin/cleandb.sh && /usr/share/roundcube/bin/cleandb.sh >/dev/null
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/var/www>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=www-data>
+Message-Id: <20170703030002.02DD6AD7C@amelia.com>
+Date: Mon,  3 Jul 2017 05:00:01 +0200 (CEST)
+
+Email 2
+
+From www-data@amelia.com  Thu Dec 21 05:00:01 2017
+Return-Path: <www-data@amelia.com>
+X-Original-To: www-data
+Delivered-To: www-data@amelia.com
+Received: by amelia.com (Postfix, from userid 33)
+        id A3057110C; Thu, 21 Dec 2017 05:00:01 +0100 (CET)
+From: root@amelia.com (Cron Daemon)
+To: www-data@amelia.com
+Subject: Cron <www-data@amelia> test -x /usr/share/roundcube/bin/cleandb.sh && /usr/share/roundcube/bin/cleandb.sh >/dev/null
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/var/www>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=www-data>
+Message-Id: <20171221040001.A3057110C@amelia.com>
+Date: Thu, 21 Dec 2017 05:00:01 +0100 (CET)
+
+Email 3
+
+
