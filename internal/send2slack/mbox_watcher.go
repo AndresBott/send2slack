@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	log "github.com/sirupsen/logrus"
+	"send2slack/internal/mbox"
 	"sync/atomic"
 )
 
@@ -98,54 +99,35 @@ func (dw *DirWatcher) Stop() {
 //
 func (dw *DirWatcher) ConsumeMbox(file string) error {
 
-	msg, end, err := ReadMbox(file, "")
-
+	hand, err := mbox.NewHandler(file)
 	if err != nil {
-
+		return err
 	}
 
-	if !end {
-		err := dw.MsgSender.SendMessage(msg)
+	for hand.HasMails() {
+
+		mailBytes, err := hand.ConsumeLastMail()
+
+		if err != nil {
+			// if err try to send the error to slack
+			errMsg := Message{
+				Text:  "Error while reading mbox: " + err.Error(),
+				Color: "red",
+			}
+			_ = dw.MsgSender.SendMessage(&errMsg)
+
+			log.Error("error reading mbox:" + err.Error())
+		}
+
+		mail := mbox.NewMailFromBytes(mailBytes)
+		msg, err := NewMessageFromMail(Email(*mail), "")
+
+		err = dw.MsgSender.SendMessage(msg)
 		if err != nil {
 			return err
 		}
+
 	}
 
 	return nil
 }
-
-// the intention is to watch files in /var/mail using fsnotify and consume the messages upon change
-//func main() {
-//	watcher, err := fsnotify.NewWatcher()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	defer watcher.Close()
-//
-//	done := make(chan bool)
-//	go func() {
-//		for {
-//			select {
-//			case event, ok := <-watcher.Events:
-//				if !ok {
-//					return
-//				}
-//				log.Println("event:", event)
-//				if event.Op&fsnotify.Write == fsnotify.Write {
-//					log.Println("modified file:", event.Name)
-//				}
-//			case err, ok := <-watcher.Errors:
-//				if !ok {
-//					return
-//				}
-//				log.Println("error:", err)
-//			}
-//		}
-//	}()
-//
-//	err = watcher.Add("/tmp/foo")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	<-done
-//}

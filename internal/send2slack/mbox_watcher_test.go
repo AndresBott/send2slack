@@ -51,7 +51,7 @@ func TestStartAndStopDirWatcher(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
+		here: the test is not yet complete
 		t.Error(dummySender.Msg)
 
 	})

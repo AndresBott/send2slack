@@ -18,6 +18,11 @@ type Message struct {
 	Att     *slack.Attachment
 }
 
+type Email struct {
+	Headers map[string]string
+	Body    string
+}
+
 // set the color of the message attachment field
 func (m *Message) getColor() string {
 	switch m.Color {
@@ -50,12 +55,6 @@ func (m *Message) Validate() error {
 	return nil
 }
 
-// ReadMbox reads exactly the last message from an mbox file, if it is no more messages available to read
-// bool true will be returned
-func ReadMbox(file string, tpl string) (*Message, bool, error) {
-
-}
-
 // takes a string input that is expected to be a plain text email and transforms this to a slack message
 // using a template to from the main slack message
 // example template usage:
@@ -63,12 +62,7 @@ func ReadMbox(file string, tpl string) (*Message, bool, error) {
 //
 func NewMessageFromMailStr(in string, tpl string) (*Message, error) {
 
-	type email struct {
-		Headers map[string]string
-		Body    string
-	}
-
-	m := email{
+	m := Email{
 		Headers: map[string]string{},
 	}
 
@@ -98,12 +92,29 @@ func NewMessageFromMailStr(in string, tpl string) (*Message, error) {
 	}
 	m.Body = sb.String()
 
-	// check that we don't have a empty body
-	if len(m.Body) <= 20 {
-		s := strings.TrimSpace(m.Body)
-		if len(s) == 0 {
-			return nil, errors.New("message body cannot be empty")
-		}
+	//// check that we don't have a empty body
+	//if len(m.Body) <= 20 {
+	//	s := strings.TrimSpace(m.Body)
+	//	if len(s) == 0 {
+	//		return nil, errors.New("message body cannot be empty")
+	//	}
+	//}
+
+	return NewMessageFromMail(m, tpl)
+
+}
+
+// default template used to generate the slack message based on an email
+const DefaultMailTemplate = `email template to be genretate`
+
+//`*[sendmail]* from: _"` + getMapString(headers,"from") + `"_ Subject: _"` + getMapString(headers,"subject") + `"_
+//` + "```" + strings.Join(body,"\n") + "```"
+
+// NewMessageFromMail parses an Email struct and returns a s2s Message
+func NewMessageFromMail(m Email, tpl string) (*Message, error) {
+
+	if tpl == "" {
+		tpl = DefaultMailTemplate
 	}
 
 	msg := Message{}
@@ -119,10 +130,6 @@ func NewMessageFromMailStr(in string, tpl string) (*Message, error) {
 	}
 
 	msg.Text = tplOut.String()
-
-	//	msg.Text =
-	//`*[sendmail]* from: _"` + getMapString(headers,"from") + `"_ Subject: _"` + getMapString(headers,"subject") + `"_
-	//` + "```" + strings.Join(body,"\n") + "```"
 
 	msg.Detail = ""
 
@@ -141,7 +148,6 @@ func NewMessageFromMailStr(in string, tpl string) (*Message, error) {
 	}
 
 	return &msg, nil
-
 }
 
 // getMapString looks int the provided map if the key exists and returns it
