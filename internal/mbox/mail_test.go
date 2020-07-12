@@ -41,12 +41,12 @@ func TestNewMailFromBytes(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			hndl, err := mbox.NewHandler(tc.file)
+			hndl, err := mbox.New(tc.file)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			bts := hndl.ReadLastMail()
+			bts, _ := hndl.ReadLastMail(false)
 			got := mbox.NewMailFromBytes(bts)
 
 			if diff := cmp.Diff(tc.expected, got); diff != "" {

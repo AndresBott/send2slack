@@ -2,20 +2,17 @@ package send2slack
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
-	"github.com/slack-go/slack"
 	"strings"
-	"text/template"
 )
 
 type Message struct {
-	Channel string
-	Text    string
-	Detail  string
-	Color   string
-	Debug   bool
-	Att     *slack.Attachment
+	origin      string
+	Destination string
+	Text        string
+	Color       string
+	Debug       bool
+	Meta        map[string]string
 }
 
 type Email struct {
@@ -100,42 +97,38 @@ func NewMessageFromMailStr(in string, tpl string) (*Message, error) {
 	//	}
 	//}
 
-	return NewMessageFromMail(m, tpl)
+	return NewMessageFromMail(m)
 
 }
 
-// default template used to generate the slack message based on an email
-const DefaultMailTemplate = `email template to be genretate`
-
-//`*[sendmail]* from: _"` + getMapString(headers,"from") + `"_ Subject: _"` + getMapString(headers,"subject") + `"_
-//` + "```" + strings.Join(body,"\n") + "```"
-
 // NewMessageFromMail parses an Email struct and returns a s2s Message
-func NewMessageFromMail(m Email, tpl string) (*Message, error) {
+func NewMessageFromMail(m Email) (*Message, error) {
 
-	if tpl == "" {
-		tpl = DefaultMailTemplate
+	//if tpl == "" {
+	//	tpl = DefaultMailTemplate
+	//}
+
+	msg := Message{
+		Meta:   m.Headers,
+		Text:   m.Body,
+		origin: "email",
 	}
 
-	msg := Message{}
+	//tmpl, err := template.New("test").Parse(tpl)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//var tplOut bytes.Buffer
+	//err = tmpl.Execute(&tplOut, m)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	tmpl, err := template.New("test").Parse(tpl)
-	if err != nil {
-		return nil, err
-	}
-	var tplOut bytes.Buffer
-	err = tmpl.Execute(&tplOut, m)
-	if err != nil {
-		return nil, err
-	}
-
-	msg.Text = tplOut.String()
-
-	msg.Detail = ""
+	//msg.Detail = ""
 
 	// check for a header "channel"
 	if c := getMapString(m.Headers, "x-slack-channel"); c != "" {
-		msg.Channel = c
+		msg.Destination = c
 	}
 
 	// check for a header "color"

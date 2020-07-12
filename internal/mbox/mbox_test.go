@@ -28,16 +28,18 @@ func TestHandler(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			hndl, err := mbox.NewHandler(tc.mboxFilename)
+			hndl, err := mbox.New(tc.mboxFilename)
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer hndl.Close()
-
 			cmpString := ""
 			mails := []mbox.Mail{}
 			for hndl.HasMails() {
-				mailBytes := hndl.ReadLastMail()
+
+				mailBytes, err := hndl.ReadLastMail(false)
+				if err != nil {
+					t.Fatal(err)
+				}
 				mail := mbox.NewMailFromBytes(mailBytes)
 				mails = append(mails, *mail)
 
@@ -108,16 +110,18 @@ func TestHandler_DeleteLastMail(t *testing.T) {
 
 	// now we can star testing
 
-	hndl, err := mbox.NewHandler(mboxFile)
+	hndl, err := mbox.New(mboxFile)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer hndl.Close()
 
 	// count al emails
 	i := 0
 	for hndl.HasMails() {
-		_ = hndl.ReadLastMail()
+		_, err = hndl.ReadLastMail(false)
+		if err != nil {
+			t.Fatal(err)
+		}
 		i++
 	}
 	if i != len(mailsToWrite) {
@@ -126,7 +130,7 @@ func TestHandler_DeleteLastMail(t *testing.T) {
 	hndl.Reset()
 
 	// remove the last email
-	_, err = hndl.ConsumeLastMail()
+	_, err = hndl.ReadLastMail(true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,8 +140,11 @@ func TestHandler_DeleteLastMail(t *testing.T) {
 	i = 0
 	mailStr := ""
 	for hndl.HasMails() {
-
-		m := mbox.NewMailFromBytes(hndl.ReadLastMail())
+		bts, err := hndl.ReadLastMail(false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		m := mbox.NewMailFromBytes(bts)
 
 		mailStr = mailStr + "|" + strings.Trim(strings.TrimSpace(m.Body), "\n")
 		i++

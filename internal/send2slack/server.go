@@ -142,7 +142,7 @@ func (srv *Server) mainHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprintf(w, "ok")
-	log.Infof("message submitted to channel: #%s", msg.Channel)
+	log.Infof("message submitted to channel: #%s", msg.Destination)
 	return
 
 }

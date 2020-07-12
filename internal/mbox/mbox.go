@@ -9,42 +9,56 @@ import (
 
 const startString = "From "
 
-type Handler struct {
+type handler struct {
 	path    string
 	fhandle *os.File
 	fSize   int64
 	cursor  int64
 }
 
-func NewHandler(fname string) (*Handler, error) {
+func New(fname string) (*handler, error) {
 
 	absFname, err := filepath.Abs(fname)
 	if err != nil {
 		return nil, err
 	}
 
-	fhandle, err := os.Open(absFname)
+	h := handler{
+		path: absFname,
+	}
+
+	err = h.loadFile()
 	if err != nil {
 		return nil, err
 	}
 
-	fStat, err := fhandle.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	h := Handler{
-		path:    absFname,
-		fhandle: fhandle,
-		fSize:   fStat.Size(),
-	}
 	return &h, nil
 
 }
 
+// load the file handler and gather file stats
+func (h *handler) loadFile() error {
+	// open the file
+	fHandle, err := os.Open(h.path)
+	if err != nil {
+		return err
+	}
+	h.fhandle = fHandle
+
+	// get the file size
+	stat, err := fHandle.Stat()
+	if err != nil {
+		return err
+	}
+	filesize := stat.Size()
+	h.fSize = filesize
+
+	return nil
+}
+
 // ReadLastLine uses the opened file handler and iterates over the runes descending from the last in the file
 // until a line break is found
-func (h *Handler) ReadLastLine() []byte {
+func (h *handler) readLastLine() []byte {
 
 	line := []byte{}
 	filesize := h.fSize
@@ -70,23 +84,29 @@ func (h *Handler) ReadLastLine() []byte {
 }
 
 // Reset will put the pointer value to 0, back to the end of the file in order to read the mbox again
-func (h *Handler) Reset() {
+func (h *handler) Reset() {
 	h.cursor = 0
 }
 
-// ReadLastMail reads the last email in the mbox file and returns it
-func (h *Handler) ReadLastMail() [][]byte {
+// Read the last email in the mbox, to minimize potential concurrency issues, whe start a new file handler with
+// new stat on every read/modify operation
+func (h *handler) ReadLastMail(delete bool) ([][]byte, error) {
 
-	filesize := h.fSize
+	err := h.loadFile()
+	if err != nil {
+		return nil, err
+	}
+
+	// read lines
 	lines := [][]byte{}
 
 	startByte := []byte(startString)
 	startByleLen := len(startByte)
 
 	for {
-		l := h.ReadLastLine()
+		l := h.readLastLine()
 
-		if h.cursor <= -filesize { // stop if we are at the begining of the file
+		if h.cursor <= -h.fSize { // stop if we are at the begining of the file
 			break
 		}
 
@@ -104,26 +124,25 @@ func (h *Handler) ReadLastMail() [][]byte {
 	for i, j := 0, len(lines)-1; i < j; i, j = i+1, j-1 {
 		lines[i], lines[j] = lines[j], lines[i]
 	}
-	return lines
-}
 
-// ConsumeLastMail will read the last mail and remove it from the mbox file
-func (h *Handler) ConsumeLastMail() ([][]byte, error) {
-	m := h.ReadLastMail()
+	if delete {
+		err = os.Truncate(h.path, h.fSize+h.cursor)
+		h.Reset()
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	newSize := h.fSize + h.cursor
-	err := os.Truncate(h.path, h.fSize+h.cursor)
+	err = h.fhandle.Close()
 	if err != nil {
 		return nil, err
 	}
-	h.fSize = newSize
-
-	return m, nil
+	return lines, nil
 }
 
 // HasMails checks if the file handler cursor has reached the beginning of the file,
 // returning true as long as there are still bytes to read
-func (h *Handler) HasMails() bool {
+func (h *handler) HasMails() bool {
 	if h.cursor <= -h.fSize {
 		return false
 	}
@@ -142,8 +161,4 @@ func ReverseRune(b []byte) []byte {
 	}
 	copy(res[0:], b[prevPos:])
 	return res
-}
-
-func (h *Handler) Close() {
-	h.fhandle.Close()
 }

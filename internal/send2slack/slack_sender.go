@@ -8,12 +8,20 @@ import (
 	"github.com/slack-go/slack"
 	"net/http"
 	"net/url"
+	"text/template"
 )
 
 type SlackSender struct {
-	client *slack.Client
-	mode   Mode
-	url    *url.URL
+	// todo add destination for error sending
+	client        *slack.Client
+	mode          Mode
+	url           *url.URL
+	emailTemplate string
+}
+
+type slackMessage struct {
+	Message
+	att *slack.Attachment
 }
 
 func NewSlackSender(cfg *Config) (*SlackSender, error) {
@@ -34,34 +42,83 @@ func NewSlackSender(cfg *Config) (*SlackSender, error) {
 
 // SendMessage depending on the configured mode
 func (c *SlackSender) SendMessage(msg *Message) error {
+	if msg.Text == "" {
+		return errors.New("unable to send empty message")
+	}
+
+	slkMsg, err := c.transformMsg(msg)
+	if err != nil {
+		return err
+	}
+
 	switch c.mode {
 	case ModeDirectCli:
-		return c.sendMsgDirecCli(msg)
+		return c.sendMsgDirecCli(slkMsg)
 	case ModeClientCli:
-		return c.sendMsgClientCli(msg)
+		return c.sendMsgClientCli(slkMsg)
 	default:
 		return errors.New("SlackSlackSender mode not found")
 	}
 }
 
+// SendError send an error to the default destination
+func (c *SlackSender) SendError(err error) {
+	msg := Message{
+		Text:  err.Error(),
+		Color: "red",
+	}
+	c.SendMessage(&msg)
+}
+
+// default template used to generate the slack message based on an email
+const DefaultMailTemplate = `*[EMAIL]* from: _{{ index .Meta "from" }}_ ` + "```" + `{{ .Text }}` + "```"
+
+func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {
+
+	slkMsg := slackMessage{}
+
+	switch msg.origin {
+	case "mail":
+		if c.emailTemplate == "" {
+			c.emailTemplate = DefaultMailTemplate
+		}
+
+		tmpl, err := template.New("test").Parse(c.emailTemplate)
+		if err != nil {
+			return nil, err
+		}
+		var tplOut bytes.Buffer
+		err = tmpl.Execute(&tplOut, msg)
+		if err != nil {
+			return nil, err
+		}
+
+		slkMsg.Text = tplOut.String()
+		slkMsg.Color = ""
+		slkMsg.att = nil
+
+		break
+	default:
+
+		// if color is defined send the message as attachment
+		if msg.getColor() != "" {
+			slkMsg.att.Text = msg.Text
+			slkMsg.att.Color = msg.getColor()
+			msg.Text = ""
+		}
+
+		break
+	}
+
+	return &slkMsg, nil
+
+}
+
 // internal method to send a message directly using the slack api
-func (c *SlackSender) sendMsgDirecCli(msg *Message) error {
-	if msg.Text == "" && msg.Detail == "" {
-		return errors.New("unable to send empty message")
-	}
+func (c *SlackSender) sendMsgDirecCli(msg *slackMessage) error {
 
-	if msg.getColor() != "" || msg.Detail != "" {
-		msg.Detail = msg.Text + msg.Detail
-		msg.Text = ""
-	}
-
-	msg.Att = &slack.Attachment{
-		Text:  msg.Detail,
-		Color: msg.getColor(),
-	}
-
-	_, _, err := c.client.PostMessage(msg.Channel, slack.MsgOptionText(msg.Text, false),
-		slack.MsgOptionAttachments(*msg.Att))
+	_, _, err := c.client.PostMessage(msg.Destination, slack.MsgOptionText(msg.Text, false),
+		slack.MsgOptionAttachments(*msg.att))
 	if err != nil {
 		return fmt.Errorf("error sending slack message: %s\n", err)
 	}
@@ -70,10 +127,7 @@ func (c *SlackSender) sendMsgDirecCli(msg *Message) error {
 }
 
 // internal method to send a message to a send2slack server
-func (c *SlackSender) sendMsgClientCli(msg *Message) error {
-	if msg.Text == "" && msg.Detail == "" {
-		return errors.New("unable to send empty message")
-	}
+func (c *SlackSender) sendMsgClientCli(msg *slackMessage) error {
 
 	jsonMsg, err := json.Marshal(msg)
 	if err != nil {
