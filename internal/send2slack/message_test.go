@@ -37,22 +37,23 @@ and another lines
 signature
 
 `,
-			expected: "from:root@mail.amelia.rivervps.com (root)|original:root|body:this ist the message body\nand another lines \n\nsignature\n\n",
-			template: `from:{{- index .Headers "from" }}|original:{{- index .Headers "x-original-to" }}|body:{{ .Body }}`,
+			expected: "from|root@mail.amelia.rivervps.com (root)|to|root@mail.amelia.rivervps.com|this ist the message body\nand another lines \n\nsignature\n\n",
 		},
 	}
 
 	for _, tc := range tcs {
 		t.Run(tc.senario, func(t *testing.T) {
-			out, err := send2slack.NewMessageFromMailStr(tc.in, tc.template)
+			out, err := send2slack.NewMessageFromMailStr(tc.in)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			if out.Text != tc.expected {
-				t.Errorf("the message got does not match expected, got: \"%s\" expected: \"%s\"", out.Text, tc.expected)
-			}
+			// create a composite string with meta values and text to make sure both are parsed correctly
+			cmprStr := "from|" + out.Meta["from"] + "|to|" + out.Meta["to"] + "|" + out.Text
 
+			if cmprStr != tc.expected {
+				t.Errorf("the message got does not match expected, got: \"%s\" expected: \"%s\"", cmprStr, tc.expected)
+			}
 		})
 	}
 }

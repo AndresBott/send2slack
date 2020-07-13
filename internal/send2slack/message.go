@@ -57,7 +57,7 @@ func (m *Message) Validate() error {
 // example template usage:
 // {{- index .Headers "from" }} to access any of the headers
 //
-func NewMessageFromMailStr(in string, tpl string) (*Message, error) {
+func NewMessageFromMailStr(in string) (*Message, error) {
 
 	m := Email{
 		Headers: map[string]string{},
@@ -104,27 +104,11 @@ func NewMessageFromMailStr(in string, tpl string) (*Message, error) {
 // NewMessageFromMail parses an Email struct and returns a s2s Message
 func NewMessageFromMail(m Email) (*Message, error) {
 
-	//if tpl == "" {
-	//	tpl = DefaultMailTemplate
-	//}
-
 	msg := Message{
 		Meta:   m.Headers,
 		Text:   m.Body,
 		origin: "email",
 	}
-
-	//tmpl, err := template.New("test").Parse(tpl)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//var tplOut bytes.Buffer
-	//err = tmpl.Execute(&tplOut, m)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//msg.Detail = ""
 
 	// check for a header "channel"
 	if c := getMapString(m.Headers, "x-slack-channel"); c != "" {

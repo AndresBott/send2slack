@@ -26,7 +26,7 @@ type slackMessage struct {
 
 func NewSlackSender(cfg *Config) (*SlackSender, error) {
 
-	if cfg.Mode == ModeClientCli {
+	if cfg.Mode == ModeHttpClient {
 		if cfg.URL == nil {
 			return nil, fmt.Errorf("url cannot be empty")
 		}
@@ -42,20 +42,23 @@ func NewSlackSender(cfg *Config) (*SlackSender, error) {
 
 // SendMessage depending on the configured mode
 func (c *SlackSender) SendMessage(msg *Message) error {
-	if msg.Text == "" {
-		return errors.New("unable to send empty message")
-	}
-
-	slkMsg, err := c.transformMsg(msg)
+	err := msg.Validate()
 	if err != nil {
 		return err
 	}
 
 	switch c.mode {
 	case ModeDirectCli:
+
+		slkMsg, err := c.transformMsg(msg)
+		if err != nil {
+			return err
+		}
 		return c.sendMsgDirecCli(slkMsg)
-	case ModeClientCli:
-		return c.sendMsgClientCli(slkMsg)
+
+	case ModeHttpClient:
+		return c.sendMsgHttpClient(msg)
+
 	default:
 		return errors.New("SlackSlackSender mode not found")
 	}
@@ -75,7 +78,9 @@ const DefaultMailTemplate = `*[EMAIL]* from: _{{ index .Meta "from" }}_ ` + "```
 
 func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {
 
-	slkMsg := slackMessage{}
+	slkMsg := slackMessage{
+		att: &slack.Attachment{},
+	}
 
 	switch msg.origin {
 	case "mail":
@@ -127,7 +132,7 @@ func (c *SlackSender) sendMsgDirecCli(msg *slackMessage) error {
 }
 
 // internal method to send a message to a send2slack server
-func (c *SlackSender) sendMsgClientCli(msg *slackMessage) error {
+func (c *SlackSender) sendMsgHttpClient(msg *Message) error {
 
 	jsonMsg, err := json.Marshal(msg)
 	if err != nil {
@@ -135,7 +140,10 @@ func (c *SlackSender) sendMsgClientCli(msg *slackMessage) error {
 	}
 
 	req, err := http.NewRequest("POST", c.url.String(), bytes.NewBuffer(jsonMsg))
-	//req.Header.Set("X-Custom-Header", "myvalue")
+	if err != nil {
+		return err
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}

@@ -142,9 +142,9 @@ func send2SlackCli(cmd *cobra.Command, args []string, cfg slackCmdConf) {
 	}
 
 	slackMsg := send2slack.Message{
-		Channel: cfg.channel,
-		Color:   cfg.color,
-		Text:    inText,
+		Destination: cfg.channel,
+		Color:       cfg.color,
+		Text:        inText,
 	}
 
 	// ============================================
@@ -167,7 +167,7 @@ func send2SlackCli(cmd *cobra.Command, args []string, cfg slackCmdConf) {
 			HandleErr(fmt.Errorf("invalid url: %v", err))
 		}
 
-		slackCfg.Mode = send2slack.ModeClientCli
+		slackCfg.Mode = send2slack.ModeHttpClient
 		slackCfg.URL = u
 
 		if cfg.verbose {
@@ -181,7 +181,7 @@ func send2SlackCli(cmd *cobra.Command, args []string, cfg slackCmdConf) {
 		slackCfg.Mode = send2slack.ModeDirectCli
 	}
 
-	slackSender, err := send2slack.NewSender(slackCfg)
+	slackSender, err := send2slack.NewSlackSender(slackCfg)
 	HandleErr(err)
 
 	err = slackSender.SendMessage(&slackMsg)
@@ -242,7 +242,7 @@ func SendmailCmd() {
 
 	spew.Dump(slackCfg)
 
-	slackSender, err := send2slack.NewSender(slackCfg)
+	slackSender, err := send2slack.NewSlackSender(slackCfg)
 	HandleErr(err)
 	_ = slackSender
 	//err = slackSender.SendMessage(&slackMsg)

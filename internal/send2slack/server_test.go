@@ -106,6 +106,8 @@ func TestSeverMessages(t *testing.T) {
 	// wait for server to start
 	time.Sleep(200 * time.Microsecond)
 
+	logrus.SetLevel(logrus.ErrorLevel)
+
 	tcs := []serverTc{
 		{
 			name:         "Submit a message",

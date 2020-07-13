@@ -19,7 +19,7 @@ type test struct {
 	errorString  string
 }
 
-func TestClient(t *testing.T) {
+func TestNewSlackSenderClient(t *testing.T) {
 	tcs := []test{
 		{
 			description:  "simple message",
@@ -32,7 +32,7 @@ func TestClient(t *testing.T) {
 	}
 
 	for _, test := range tcs {
-		t.Run(fmt.Sprintf("test case: %v\n", test.description), func(t *testing.T) {
+		t.Run(test.description, func(t *testing.T) {
 
 			// start the sample server
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -48,10 +48,16 @@ func TestClient(t *testing.T) {
 				}
 
 				decoder := json.NewDecoder(r.Body)
+
+				//here the httpclint should send a normal menssage,
+				//and it is the server that needs to then transform that to slak mesage or other in the send2slack.EmptyBodyError
+				//
+				//therefore the server needs also to implement the sender interface
 				var got send2slack.Message
 				err := decoder.Decode(&got)
 				if err != nil {
-					t.Errorf("error decoding request body")
+					t.Fatal("error decoding request body")
+					return
 				}
 
 				err = got.Validate()
@@ -71,7 +77,7 @@ func TestClient(t *testing.T) {
 			u, _ := url.ParseRequestURI(ts.URL)
 			c, err := send2slack.NewSlackSender(&send2slack.Config{
 				URL:  u,
-				Mode: send2slack.ModeClientCli,
+				Mode: send2slack.ModeHttpClient,
 			})
 			if err != nil {
 				t.Fatal(err)
@@ -86,23 +92,12 @@ func TestClient(t *testing.T) {
 				if !strings.Contains(err.Error(), test.errorString) {
 					t.Errorf("error does not contain expected error string, expected '%v', got '%v'", test.errorString, err.Error())
 				}
-
 			} else {
 				if err != nil {
 					t.Fatal(err)
 				}
 			}
 
-			//else {
-			//	want := &CreateExecResponse{
-			//		ExecId:  test.executionId,
-			//		Status:  test.status,
-			//		Message: test.message,
-			//	}
-			//	if diff := cmp.Diff(want, got); diff != "" {
-			//		t.Errorf("create execution response mismatch (-want +got):\n%s", diff)
-			//	}
-			//}
 		})
 	}
 }

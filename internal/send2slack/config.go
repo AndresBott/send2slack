@@ -12,7 +12,7 @@ type Mode int
 
 const (
 	ModeDirectCli     = 1
-	ModeClientCli     = 2
+	ModeHttpClient    = 2
 	ModeServerNoWatch = 3
 	ModeNoServerWatch = 4
 	ModeServerWatch   = 5
