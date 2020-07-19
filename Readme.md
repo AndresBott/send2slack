@@ -82,3 +82,8 @@ here documents:
 
 if the binary is renamed to sendmail ( or symlink to a renamed ) the command line parameters will be ignored and it 
 will accept emails on stdin that will be forwarded to channel configured with "sendmail_channel"
+
+
+## TODO
+
+make 2 config files one for client one for server

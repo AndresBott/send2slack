@@ -62,6 +62,10 @@ func (h *handler) readLastLine() []byte {
 
 	line := []byte{}
 	filesize := h.fSize
+	// don't try to read empty file
+	if filesize == 0 {
+		return line
+	}
 	for {
 
 		h.cursor -= 1
@@ -104,6 +108,7 @@ func (h *handler) ReadLastMail(delete bool) ([][]byte, error) {
 	startByleLen := len(startByte)
 
 	for {
+
 		l := h.readLastLine()
 
 		if h.cursor <= -h.fSize { // stop if we are at the begining of the file

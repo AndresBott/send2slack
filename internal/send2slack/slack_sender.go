@@ -81,6 +81,10 @@ func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {
 	slkMsg := slackMessage{
 		att: &slack.Attachment{},
 	}
+	slkMsg.Destination = msg.Destination
+	slkMsg.Debug = msg.Debug
+	slkMsg.Meta = msg.Meta
+	slkMsg.Text = msg.Text
 
 	switch msg.origin {
 	case "mail":
@@ -109,7 +113,7 @@ func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {
 		if msg.getColor() != "" {
 			slkMsg.att.Text = msg.Text
 			slkMsg.att.Color = msg.getColor()
-			msg.Text = ""
+			slkMsg.Text = ""
 		}
 
 		break

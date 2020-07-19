@@ -6,6 +6,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"path/filepath"
 	"send2slack/internal/mbox"
 	"sync/atomic"
 	"time"
@@ -77,7 +78,6 @@ type DirWatcher struct {
 	MsgSender      MessageSender
 	watcher        *fsnotify.Watcher
 	running        int32
-	done           chan interface{}
 	filesConsuming *itemList
 }
 
@@ -92,13 +92,26 @@ func NewDirWatcher(cfg *Config) (*DirWatcher, error) {
 		return nil, err
 	}
 
+	senderCfg := &Config{
+		Token:           cfg.Token,
+		IsDefault:       cfg.IsDefault,
+		DefChannel:      cfg.DefChannel,
+		SendmailChannel: cfg.SendmailChannel,
+		Mode:            ModeDirectCli,
+	}
+
+	sender, err := NewSlackSender(senderCfg)
+	if err != nil {
+		return nil, err
+	}
+
 	dw := DirWatcher{
 		watcher:        watcher,
 		path:           cfg.WatchDir,
 		filesConsuming: newItemList(),
+		MsgSender:      sender,
 	}
 	return &dw, nil
-
 }
 
 // returns true if the server is currently running
@@ -111,8 +124,12 @@ func (dw *DirWatcher) IsRunning() bool {
 }
 
 func (dw *DirWatcher) Start() {
-
 	if atomic.CompareAndSwapInt32(&dw.running, 0, 1) {
+		log.Info("Starting mbox watcher on path:" + dw.path)
+
+		// consume any messages present when starting the watcher
+		dw.ConsumeMboxDir()
+
 		go func() {
 			for {
 				select {
@@ -123,7 +140,7 @@ func (dw *DirWatcher) Start() {
 					//log.Println("event:", event)
 					if event.Op&fsnotify.Write == fsnotify.Write {
 						//log.Println("modified file:", event.Name)
-						dw.ConsumeMbox(event.Name)
+						dw.ConsumeMbox(event.Name, false)
 						time.Sleep(10 * time.Microsecond)
 					}
 
@@ -144,6 +161,7 @@ func (dw *DirWatcher) Start() {
 
 // Start the Server in a non blocking way in a separate routine
 func (dw *DirWatcher) StartBackground() {
+
 	if atomic.LoadInt32(&dw.running) == 0 {
 		go func() {
 			dw.Start()
@@ -159,9 +177,28 @@ func (dw *DirWatcher) Stop() {
 	}
 }
 
+func (dw *DirWatcher) ConsumeMboxDir() {
+
+	files := map[string]os.FileInfo{}
+	err := filepath.Walk(dw.path, func(path string, info os.FileInfo, err error) error {
+		files[path] = info
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	for path, info := range files {
+		if !info.IsDir() {
+			log.Debug("Consuming mails in file: " + path)
+			dw.ConsumeMbox(path, true)
+		}
+	}
+}
+
 // ConsumeMbox will consume all mbox emails in a file
 //
-func (dw *DirWatcher) ConsumeMbox(file string) {
+func (dw *DirWatcher) ConsumeMbox(file string, blockExec bool) {
 
 	fi, err := os.Stat(file)
 	if err != nil {
@@ -174,6 +211,7 @@ func (dw *DirWatcher) ConsumeMbox(file string) {
 	}
 
 	if dw.filesConsuming.active(file) { // atomic operation
+		done := make(chan interface{}, 1)
 
 		go func(file string) {
 
@@ -195,7 +233,6 @@ func (dw *DirWatcher) ConsumeMbox(file string) {
 				}
 
 				mail := mbox.NewMailFromBytes(mailBytes)
-
 				msg, err := NewMessageFromMail(Email(*mail))
 
 				if err != nil {
@@ -210,8 +247,17 @@ func (dw *DirWatcher) ConsumeMbox(file string) {
 
 			}
 
-			log.Info("Finishe: => " + file)
+			log.Info("Finished: => " + file)
 			dw.filesConsuming.disable(file)
+			done <- true
 		}(file)
+
+		if blockExec {
+			<-done
+		}
 	}
+}
+
+func here() {
+	fmt.Println("=>> HERE")
 }

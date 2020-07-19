@@ -16,7 +16,6 @@ type Server struct {
 	sever       *http.Server
 	slackSender MessageSender
 	running     int32
-	done        chan interface{}
 }
 
 func NewServer(cfg *Config) (*Server, error) {
@@ -30,17 +29,21 @@ func NewServer(cfg *Config) (*Server, error) {
 		port = DefaultPort
 	}
 
-	done := make(chan interface{}, 1)
+	senderCfg := &Config{
+		Token:           cfg.Token,
+		IsDefault:       cfg.IsDefault,
+		DefChannel:      cfg.DefChannel,
+		SendmailChannel: cfg.SendmailChannel,
+		Mode:            ModeDirectCli,
+	}
 
-	cfg.Mode = ModeDirectCli
-	sender, err := NewSlackSender(cfg)
+	sender, err := NewSlackSender(senderCfg)
 	if err != nil {
 		return nil, err
 	}
 
 	srv := Server{
 		listen:      host + ":" + strconv.Itoa(port),
-		done:        done,
 		slackSender: sender,
 	}
 
@@ -67,6 +70,7 @@ func (srv *Server) IsRunning() bool {
 
 func (srv *Server) Start() {
 	if atomic.CompareAndSwapInt32(&srv.running, 0, 1) {
+		log.Info("Starting Slack server on " + srv.listen)
 		if err := srv.sever.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
@@ -154,7 +158,7 @@ func ParseListenAddress(in string) (string, int, error) {
 	s := strings.TrimSpace(in)
 
 	if s == "" {
-		return "", -1, fmt.Errorf("expecting listen pattern like \"<ip>:<port>\" or \":<port>\"")
+		return "", -1, fmt.Errorf("empty listen url, expecting listen pattern like \"<ip>:<port>\" or \":<port>\"")
 	}
 
 	var port int
@@ -173,7 +177,7 @@ func ParseListenAddress(in string) (string, int, error) {
 		// if not, we assume <ip>:<port>
 		spl := strings.Split(in, ":")
 		if len(spl) != 2 {
-			return "", -1, fmt.Errorf("expecting listen pattern like \"<ip>:<port>\" or \":<port>\"")
+			return "", -1, fmt.Errorf("expecting listen pattern like \"<ip>:<port>\" or \":<port>\", got: " + in)
 		}
 		host = spl[0]
 		port, err = strconv.Atoi(spl[1])

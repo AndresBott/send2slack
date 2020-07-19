@@ -24,6 +24,12 @@ func TestHandler(t *testing.T) {
 			emailCount:     3,
 			expectedString: "|Email 3|Email 2|Email 1",
 		},
+		{
+			name:           "read empty mbox",
+			mboxFilename:   "test-data/empty.mbox",
+			emailCount:     0,
+			expectedString: "",
+		},
 	}
 
 	for _, tc := range tcs {

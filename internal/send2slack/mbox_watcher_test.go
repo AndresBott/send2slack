@@ -118,6 +118,117 @@ func TestDirWatcher_ConsumeMbox(t *testing.T) {
 	})
 }
 
+func TestDirWatcher_ConsumeMboxDir(t *testing.T) {
+	// don't print log messages during tests
+	logrus.SetLevel(logrus.DebugLevel)
+
+	t.Run("empty mbox dir", func(t *testing.T) {
+
+		dir, err := ioutil.TempDir("/tmp", "s2s_watcher")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.RemoveAll(dir)
+		//spew.Dump(dir)
+
+		cfg := send2slack.Config{
+			WatchDir: dir,
+		}
+		dw, err := send2slack.NewDirWatcher(&cfg)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		dummySender := send2slack.DummyMessageSender{}
+		dummySender.Msg = "ConsumeMboxDir"
+
+		// set the sender to use dummy
+		dw.MsgSender = &dummySender
+
+		dw.ConsumeMboxDir()
+
+		expected := "ConsumeMboxDir"
+		if dummySender.Msg != expected {
+			t.Errorf("consumed message does not match expected, got \"%s\" expected: \"%s\"", dummySender.Msg, expected)
+		}
+
+	})
+
+	t.Run("mbox dir with empty files", func(t *testing.T) {
+
+		dir, err := ioutil.TempDir("/tmp", "s2s_watcher")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.RemoveAll(dir)
+		//spew.Dump(dir)
+
+		cfg := send2slack.Config{
+			WatchDir: dir,
+		}
+		dw, err := send2slack.NewDirWatcher(&cfg)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		dummySender := send2slack.DummyMessageSender{}
+		dummySender.Msg = "ConsumeMboxDir"
+
+		// set the sender to use dummy
+		dw.MsgSender = &dummySender
+
+		// create the empty mbox file
+		emptyFile, err := os.Create(dir + "/empty.mbox")
+		if err != nil {
+			t.Fatal(err)
+		}
+		emptyFile.Close()
+
+		dw.ConsumeMboxDir()
+
+		expected := "ConsumeMboxDir"
+		if dummySender.Msg != expected {
+			t.Errorf("consumed message does not match expected, got \"%s\" expected: \"%s\"", dummySender.Msg, expected)
+		}
+	})
+
+	t.Run("consume existing mbox", func(t *testing.T) {
+
+		dir, err := ioutil.TempDir("/tmp", "s2s_watcher")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer os.RemoveAll(dir)
+		//spew.Dump(dir)
+
+		cfg := send2slack.Config{
+			WatchDir: dir,
+		}
+		dw, err := send2slack.NewDirWatcher(&cfg)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		dummySender := send2slack.DummyMessageSender{}
+		dummySender.Msg = "ConsumeMboxDir"
+
+		// set the sender to use dummy
+		dw.MsgSender = &dummySender
+
+		writeMailToMbox(dir+"/file1", "msg1")
+		writeMailToMbox(dir+"/file1", "msg2")
+
+		dw.ConsumeMboxDir()
+		writeMailToMbox(dir+"/file2", "msg3")
+		dw.ConsumeMboxDir()
+
+		expected := "ConsumeMboxDir|msg2|msg1|msg3"
+		if dummySender.Msg != expected {
+			t.Errorf("consumed message does not match expected, got \"%s\" expected: \"%s\"", dummySender.Msg, expected)
+		}
+	})
+}
+
 func writeMailToMbox(file string, body string) error {
 
 	m :=
