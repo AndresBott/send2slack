@@ -19,6 +19,7 @@ const (
 	ModeNoServerWatch   = 4
 	ModeServerWatch     = 5
 	ModeNoServerNoWatch = 6
+	ModeMailSending     = 7
 )
 
 const DefaultPort = 4789

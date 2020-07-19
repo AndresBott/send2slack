@@ -444,8 +444,8 @@ func TestE2EFileWatchMode(t *testing.T) {
 
 	ts := "*[E2E test] [MBOX WATCH MODE]* => "
 	mailsToWrite := []string{
-		ts + "mail 1",
-		ts + "mail 2",
+		ts + "email 1 present before starting to watch",
+		ts + "email 2 also present before starting to watch",
 	}
 
 	for _, mail := range mailsToWrite {
@@ -459,41 +459,11 @@ func TestE2EFileWatchMode(t *testing.T) {
 		{
 			name: "expect error empty message",
 			cmd: []string{
-				"go", "run", "main.go", "-s", "-f", tmpPath + "/config.yaml", "-v",
+				"go", "run", "main.go", "-s", "-f", tmpPath + "/config.yaml",
 			},
 			expectedExitCode: 0,
 			expectedErrorStr: "",
 		},
-		//{
-		//	name: "text without color",
-		//	cmd: []string{
-		//		"go", "run", "main.go",
-		//		ts + " text without color",
-		//		"-d", "#trash",
-		//	},
-		//	expectedExitCode: 0,
-		//	expectedErrorStr: "",
-		//},
-		//{
-		//	name: "direct Cli",
-		//	cmd: []string{
-		//		"go", "run", "main.go",
-		//		ts + " simple color blue",
-		//		"-d", "#trash", "-c", "blue", "-r", remoteUrl,
-		//	},
-		//	expectedExitCode: 0,
-		//	expectedErrorStr: "",
-		//},
-		//{
-		//	name: "different config file",
-		//	cmd: []string{
-		//		"go", "run", "main.go",
-		//		ts + " nonexistent file",
-		//		"-d", "#trash", "-c", "blue", "-f", "inexistent", "-r", remoteUrl,
-		//	},
-		//	expectedExitCode: 0,
-		//	expectedErrorStr: "",
-		//},
 	}
 
 	for _, tc := range tcs {
@@ -519,7 +489,7 @@ func TestE2EFileWatchMode(t *testing.T) {
 			}()
 
 			// wait for watcher to process
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(2000 * time.Millisecond)
 
 			fmt.Println(errb.String())
 
@@ -555,6 +525,7 @@ func writeMailToMbox(file string, body string) error {
 		`From www-data@amelia.com  Thu Dec 21 05:00:01 2017
 From: root@amelia.com (Cron Daemon)
 To: www-data@amelia.com
+x-slack-channel: trash
 
 `
 	m = m + body + "\n\n"

@@ -87,3 +87,7 @@ will accept emails on stdin that will be forwarded to channel configured with "s
 ## TODO
 
 make 2 config files one for client one for server
+make mbox watcher also possible to read top to bottom 
+refactor: separate client from server for better maintenance of code
+create go releaser config
+create cicd

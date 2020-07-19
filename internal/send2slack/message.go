@@ -120,8 +120,6 @@ func NewMessageFromMail(m Email) (*Message, error) {
 		msg.Color = c
 	} else if c := getMapString(m.Headers, "x-slack-color"); c != "" {
 		msg.Color = c
-	} else {
-		msg.Color = "blue"
 	}
 
 	return &msg, nil

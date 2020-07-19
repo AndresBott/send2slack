@@ -17,6 +17,7 @@ type SlackSender struct {
 	mode          Mode
 	url           *url.URL
 	emailTemplate string
+	defMailDest   string
 }
 
 type slackMessage struct {
@@ -33,15 +34,17 @@ func NewSlackSender(cfg *Config) (*SlackSender, error) {
 	}
 
 	sl := SlackSender{
-		client: slack.New(cfg.Token),
-		mode:   cfg.Mode,
-		url:    cfg.URL,
+		client:      slack.New(cfg.Token),
+		mode:        cfg.Mode,
+		url:         cfg.URL,
+		defMailDest: cfg.SendmailChannel,
 	}
 	return &sl, nil
 }
 
 // SendMessage depending on the configured mode
 func (c *SlackSender) SendMessage(msg *Message) error {
+
 	err := msg.Validate()
 	if err != nil {
 		return err
@@ -53,6 +56,15 @@ func (c *SlackSender) SendMessage(msg *Message) error {
 		slkMsg, err := c.transformMsg(msg)
 		if err != nil {
 			return err
+		}
+		return c.sendMsgDirecCli(slkMsg)
+	case ModeMailSending:
+		slkMsg, err := c.transformMsg(msg)
+		if err != nil {
+			return err
+		}
+		if slkMsg.Destination == "" {
+			slkMsg.Destination = c.defMailDest
 		}
 		return c.sendMsgDirecCli(slkMsg)
 
@@ -74,7 +86,7 @@ func (c *SlackSender) SendError(err error) {
 }
 
 // default template used to generate the slack message based on an email
-const DefaultMailTemplate = `*[EMAIL]* from: _{{ index .Meta "from" }}_ ` + "```" + `{{ .Text }}` + "```"
+const DefaultMailTemplate = `*[EMAIL]* from: _ {{ index .Meta "from" }} _ ` + "```" + `{{ .Text }}` + "```"
 
 func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {
 
@@ -87,16 +99,18 @@ func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {
 	slkMsg.Text = msg.Text
 
 	switch msg.origin {
-	case "mail":
+	case "email":
+
 		if c.emailTemplate == "" {
 			c.emailTemplate = DefaultMailTemplate
 		}
 
-		tmpl, err := template.New("test").Parse(c.emailTemplate)
+		tmpl, err := template.New("bla").Parse(c.emailTemplate)
 		if err != nil {
 			return nil, err
 		}
 		var tplOut bytes.Buffer
+
 		err = tmpl.Execute(&tplOut, msg)
 		if err != nil {
 			return nil, err
@@ -126,8 +140,14 @@ func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {
 // internal method to send a message directly using the slack api
 func (c *SlackSender) sendMsgDirecCli(msg *slackMessage) error {
 
-	_, _, err := c.client.PostMessage(msg.Destination, slack.MsgOptionText(msg.Text, false),
-		slack.MsgOptionAttachments(*msg.att))
+	var err error
+	if msg.att != nil {
+		_, _, err = c.client.PostMessage(msg.Destination, slack.MsgOptionText(msg.Text, false),
+			slack.MsgOptionAttachments(*msg.att))
+	} else {
+		_, _, err = c.client.PostMessage(msg.Destination, slack.MsgOptionText(msg.Text, false))
+	}
+
 	if err != nil {
 		return fmt.Errorf("error sending slack message: %s\n", err)
 	}

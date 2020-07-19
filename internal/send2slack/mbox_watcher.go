@@ -97,7 +97,7 @@ func NewDirWatcher(cfg *Config) (*DirWatcher, error) {
 		IsDefault:       cfg.IsDefault,
 		DefChannel:      cfg.DefChannel,
 		SendmailChannel: cfg.SendmailChannel,
-		Mode:            ModeDirectCli,
+		Mode:            ModeMailSending,
 	}
 
 	sender, err := NewSlackSender(senderCfg)
