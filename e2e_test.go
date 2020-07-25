@@ -10,7 +10,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"send2slack/internal/send2slack"
+	"send2slack/internal/config"
+	"send2slack/internal/daemon"
 	"strconv"
 	"strings"
 	"testing"
@@ -112,7 +113,7 @@ func TestE2eCliDirectMode(t *testing.T) {
 	defer os.RemoveAll(tmpPath)
 
 	// load the config
-	slackCfg, err := send2slack.NewConfig(tmpPath + "/config.yaml")
+	slackCfg, err := config.NewClientConfig(tmpPath + "/config.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -295,12 +296,12 @@ func TestE2EHttpServerMode(t *testing.T) {
 	remoteUrl := "localhost:" + strconv.Itoa(port)
 
 	// load the config
-	slackCfg, err := send2slack.NewConfig(tmpPath + "/config.yaml")
+	cfg, err := config.NewDaemonConfig(tmpPath + "/config.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	server, err := send2slack.NewServer(slackCfg)
+	server, err := daemon.NewServer(cfg)
 	if err != nil {
 		t.Fatalf("unable to crete s2s server: %v", err)
 	}
@@ -373,7 +374,7 @@ func TestE2EHttpServerMode(t *testing.T) {
 			// modify the test text
 			msg := tc.text
 			if tc.text != "" {
-				msg = "*[E2E test] [DIRECT CLI MODE] (" + strconv.Itoa(i) + "/" + strconv.Itoa(testCount) + ")* => " + tc.text
+				msg = "*[E2E test] [HTTP SERVER MODE] (" + strconv.Itoa(i) + "/" + strconv.Itoa(testCount) + ")* => " + tc.text
 			}
 			tc.cmd = append(tc.cmd, msg)
 

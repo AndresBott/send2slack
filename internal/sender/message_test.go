@@ -1,7 +1,7 @@
-package send2slack_test
+package sender_test
 
 import (
-	"send2slack/internal/send2slack"
+	"send2slack/internal/sender"
 	"testing"
 )
 
@@ -43,7 +43,7 @@ signature
 
 	for _, tc := range tcs {
 		t.Run(tc.senario, func(t *testing.T) {
-			out, err := send2slack.NewMessageFromMailStr(tc.in)
+			out, err := sender.NewMessageFromMailStr(tc.in)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -60,7 +60,7 @@ signature
 
 type valdationScenatio struct {
 	name        string
-	msg         send2slack.Message
+	msg         sender.Message
 	expectError string
 }
 
@@ -69,8 +69,8 @@ func TestMessage_Validate(t *testing.T) {
 	tcs := []valdationScenatio{
 		{
 			name:        "empty text",
-			msg:         send2slack.Message{},
-			expectError: send2slack.EmptyBodyError,
+			msg:         sender.Message{},
+			expectError: sender.EmptyBodyError,
 		},
 	}
 

@@ -1,4 +1,4 @@
-package send2slack
+package daemon
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"send2slack/internal/config"
+	"send2slack/internal/sender"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -14,11 +16,11 @@ import (
 type Server struct {
 	listen      string
 	sever       *http.Server
-	slackSender MessageSender
+	slackSender sender.MessageSender
 	running     int32
 }
 
-func NewServer(cfg *Config) (*Server, error) {
+func NewServer(cfg *config.DaemonConfig) (*Server, error) {
 
 	host, port, err := ParseListenAddress(cfg.ListenUrl)
 	if err != nil {
@@ -26,18 +28,18 @@ func NewServer(cfg *Config) (*Server, error) {
 	}
 
 	if port == 0 {
-		port = DefaultPort
+		port = config.DefaultPort
 	}
 
-	senderCfg := &Config{
+	senderCfg := &config.ClientConfig{
 		Token:           cfg.Token,
 		IsDefault:       cfg.IsDefault,
 		DefChannel:      cfg.DefChannel,
 		SendmailChannel: cfg.SendmailChannel,
-		Mode:            ModeDirectCli,
+		Mode:            config.ModeDirectCli,
 	}
 
-	sender, err := NewSlackSender(senderCfg)
+	sender, err := sender.NewSlackSender(senderCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +113,7 @@ func (srv *Server) mainHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	decoder := json.NewDecoder(r.Body)
-	var msg Message
+	var msg sender.Message
 	err := decoder.Decode(&msg)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

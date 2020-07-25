@@ -1,4 +1,4 @@
-package send2slack
+package sender
 
 import "strings"
 

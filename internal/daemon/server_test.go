@@ -1,4 +1,4 @@
-package send2slack_test
+package daemon_test
 
 import (
 	"bytes"
@@ -8,7 +8,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"send2slack/internal/send2slack"
+	"send2slack/internal/config"
+	"send2slack/internal/daemon"
+	"send2slack/internal/sender"
 	"strconv"
 	"strings"
 	"testing"
@@ -27,10 +29,10 @@ func TestStartAndStopServer(t *testing.T) {
 	}
 
 	// start the server
-	cfg := send2slack.Config{
+	cfg := config.DaemonConfig{
 		ListenUrl: ":" + strconv.Itoa(port),
 	}
-	srv, err := send2slack.NewServer(&cfg)
+	srv, err := daemon.NewServer(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +86,7 @@ type serverTc struct {
 	contentType  string
 	expectedCode int
 	expectedBody string
-	msg          send2slack.Message
+	msg          sender.Message
 }
 
 func TestSeverMessages(t *testing.T) {
@@ -95,10 +97,10 @@ func TestSeverMessages(t *testing.T) {
 	}
 
 	// start the server
-	cfg := send2slack.Config{
+	cfg := config.DaemonConfig{
 		ListenUrl: ":" + strconv.Itoa(port),
 	}
-	srv, err := send2slack.NewServer(&cfg)
+	srv, err := daemon.NewServer(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +116,7 @@ func TestSeverMessages(t *testing.T) {
 			method:       "POST",
 			contentType:  "application/json",
 			expectedCode: 202,
-			msg: send2slack.Message{
+			msg: sender.Message{
 				Debug: true,
 				Text:  "sample",
 			},
@@ -125,7 +127,7 @@ func TestSeverMessages(t *testing.T) {
 			contentType:  "application/json",
 			expectedCode: 400,
 			expectedBody: "400: error validating message",
-			msg: send2slack.Message{
+			msg: sender.Message{
 				Debug: true,
 			},
 		},
@@ -135,7 +137,7 @@ func TestSeverMessages(t *testing.T) {
 			contentType:  "invalid",
 			expectedCode: 400,
 			expectedBody: "400: content type is not \"application/json\"",
-			msg: send2slack.Message{
+			msg: sender.Message{
 				Debug: true,
 			},
 		},
@@ -145,7 +147,7 @@ func TestSeverMessages(t *testing.T) {
 			contentType:  "application/json",
 			expectedCode: 500,
 			expectedBody: "500: unable to send slack message",
-			msg: send2slack.Message{
+			msg: sender.Message{
 				Text: "sample",
 			},
 		},
@@ -233,7 +235,7 @@ func TestParseListenAddress(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			host, port, err := send2slack.ParseListenAddress(tc.in)
+			host, port, err := daemon.ParseListenAddress(tc.in)
 			out := host + ":" + strconv.Itoa(port)
 			if tc.expectedErr != "" {
 				if err != nil {

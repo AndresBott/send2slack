@@ -1,4 +1,4 @@
-package send2slack
+package daemon
 
 import (
 	"errors"
@@ -7,7 +7,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
+	"send2slack/internal/config"
 	"send2slack/internal/mbox"
+	"send2slack/internal/sender"
 	"sync/atomic"
 	"time"
 )
@@ -75,13 +77,13 @@ func (i *itemList) disable(in string) bool {
 
 type DirWatcher struct {
 	path           string
-	MsgSender      MessageSender
+	MsgSender      sender.MessageSender
 	watcher        *fsnotify.Watcher
 	running        int32
 	filesConsuming *itemList
 }
 
-func NewDirWatcher(cfg *Config) (*DirWatcher, error) {
+func NewDirWatcher(cfg *config.DaemonConfig) (*DirWatcher, error) {
 
 	if cfg.WatchDir == "" {
 		return nil, fmt.Errorf("watching dir cannot be empty")
@@ -92,15 +94,15 @@ func NewDirWatcher(cfg *Config) (*DirWatcher, error) {
 		return nil, err
 	}
 
-	senderCfg := &Config{
+	senderCfg := &config.ClientConfig{
 		Token:           cfg.Token,
 		IsDefault:       cfg.IsDefault,
 		DefChannel:      cfg.DefChannel,
 		SendmailChannel: cfg.SendmailChannel,
-		Mode:            ModeMailSending,
+		Mode:            config.ModeDirectCli,
 	}
 
-	sender, err := NewSlackSender(senderCfg)
+	sndr, err := sender.NewSlackSender(senderCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +111,7 @@ func NewDirWatcher(cfg *Config) (*DirWatcher, error) {
 		watcher:        watcher,
 		path:           cfg.WatchDir,
 		filesConsuming: newItemList(),
-		MsgSender:      sender,
+		MsgSender:      sndr,
 	}
 	return &dw, nil
 }
@@ -233,7 +235,7 @@ func (dw *DirWatcher) ConsumeMbox(file string, blockExec bool) {
 				}
 
 				mail := mbox.NewMailFromBytes(mailBytes)
-				msg, err := NewMessageFromMail(Email(*mail))
+				msg, err := sender.NewMessageFromMail(sender.Email(*mail))
 
 				if err != nil {
 					dw.MsgSender.SendError(err)

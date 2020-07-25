@@ -5,25 +5,12 @@ import (
 	"github.com/spf13/cobra"
 	"net/url"
 	"os"
-	"send2slack/internal/send2slack"
+	"send2slack/internal/config"
+	"send2slack/internal/daemon"
+	"send2slack/internal/sender"
 	"strconv"
 	"strings"
 )
-
-func Run() {
-
-	// disable the whole sendmail implementation for now
-	// mayne never added again
-
-	//binName := filepath.Base(os.Args[0])
-	//// handle the case where the app replaces sendmail binary
-	//if binName == "sendmail" || os.Getenv("SENDMAIL") == "debug" {
-	//	// sendmail mode
-	//	SendmailCmd()
-	//} else {
-	send2SlackCmd()
-	//}
-}
 
 type cmdParams struct {
 	printExtHelp bool // print extended help
@@ -36,14 +23,16 @@ type cmdParams struct {
 	color        string
 }
 
+const Version = "0.2.0"
+
 // execute the normal mode command, NOT replacing sendmail
-func send2SlackCmd() {
+func Run() {
 
 	params := cmdParams{}
 
 	cmd := &cobra.Command{
 		Short: "Send messages to slack",
-		Long: ` == send2slack v` + send2slack.Version + ` ==
+		Long: ` == send2slack v` + Version + ` ==
 The send2slack behaves differently depending on configuration and invocation:
 - send2slack can be started as http server to receive json payloads that will be delivered to slack
 - TODO: can be started as file watcher, and all changes will be sent to slack ( /var/mail )
@@ -58,12 +47,7 @@ The send2slack behaves differently depending on configuration and invocation:
 				extendedHelp()
 			} else if params.server {
 				// start in server mode
-				slackCfg := getSend2SlackConfig(params)
-
-				daemon, err := send2slack.NewDaemon(slackCfg)
-				HandleErr(err)
-				daemon.Start()
-
+				send2SlackDaemon(params)
 			} else {
 				// use the client to send a message
 				send2SlackCli(cmd, args, params)
@@ -82,7 +66,7 @@ The send2slack behaves differently depending on configuration and invocation:
 	cmd.Flags().BoolVarP(&params.server, "server", "s", false, "run in server mode")
 
 	cmd.Flags().StringVarP(&params.remote, "remote", "r", "", "send message to remote proxy server")
-	cmd.Flags().BoolVarP(&params.localRemote, "local-remote", "R", false, "same as \"remote\" but uses \"127.0.0.1:"+strconv.Itoa(send2slack.DefaultPort)+"\" as destination")
+	cmd.Flags().BoolVarP(&params.localRemote, "local-remote", "R", false, "same as \"remote\" but uses \"127.0.0.1:"+strconv.Itoa(config.DefaultPort)+"\" as destination")
 
 	cmd.Flags().StringVarP(&params.channel, "channel", "d", "", "destination channel to send the message")
 	cmd.Flags().StringVarP(&params.color, "color", "c", "", "color")
@@ -98,8 +82,39 @@ func extendedHelp() {
 	fmt.Println("todo: Extended help")
 }
 
+// getSend2SlackDaemonConfig uses the cli parameters to create a daemon config
+func getSend2SlackDaemonConfig(params cmdParams) *config.DaemonConfig {
+	if params.verbose {
+		if params.configFile == "" {
+			cfgFile := " /etc/send2slack/server.yaml | $HOME/.send2slack/server.yaml | ./server.yaml "
+			fmt.Printf("loading server configuration file from: %s \n", cfgFile)
+		} else {
+			fmt.Printf("loading server configuration file: \"%s\"\n", params.configFile)
+		}
+	}
+
+	cfg, err := config.NewDaemonConfig(params.configFile)
+	HandleErr(err)
+
+	if cfg.IsDefault && params.verbose {
+		fmt.Printf("configuration file not found, using default values\n")
+	}
+
+	return cfg
+}
+
+// send to slack command normally executed, see sendmail for exception
+func send2SlackDaemon(params cmdParams) {
+	// start in server mode
+	daemonCfg := getSend2SlackDaemonConfig(params)
+
+	dmn, err := daemon.NewDaemon(daemonCfg)
+	HandleErr(err)
+	dmn.Start()
+}
+
 // getSend2SlackConfig uses the cli parameters to create a send2slack config
-func getSend2SlackConfig(params cmdParams) *send2slack.Config {
+func getSend2SlackClientConfig(params cmdParams) *config.ClientConfig {
 	if params.verbose {
 		if params.configFile == "" {
 			cfgFile := " /etc/send2slack/config.yaml | $HOME/.send2slack/config.yaml | ./config.yaml "
@@ -109,7 +124,7 @@ func getSend2SlackConfig(params cmdParams) *send2slack.Config {
 		}
 	}
 
-	slackCfg, err := send2slack.NewConfig(params.configFile)
+	slackCfg, err := config.NewClientConfig(params.configFile)
 	HandleErr(err)
 
 	if slackCfg.IsDefault && params.verbose {
@@ -122,7 +137,7 @@ func getSend2SlackConfig(params cmdParams) *send2slack.Config {
 //// send to slack command normally executed, see sendmail for exception
 func send2SlackCli(cmd *cobra.Command, args []string, params cmdParams) {
 
-	slackCfg := getSend2SlackConfig(params)
+	slackCfg := getSend2SlackClientConfig(params)
 
 	var inText string
 	var err error
@@ -130,7 +145,7 @@ func send2SlackCli(cmd *cobra.Command, args []string, params cmdParams) {
 	if len(args) > 0 {
 		inText = args[0]
 	} else {
-		inText, err = send2slack.InReader(1000000) // 1MB
+		inText, err = sender.InReader(1000000) // 1MB
 		if err != nil && err.Error() != "io reader not started" {
 			HandleErr(err)
 		}
@@ -141,7 +156,7 @@ func send2SlackCli(cmd *cobra.Command, args []string, params cmdParams) {
 		params.channel = slackCfg.DefChannel
 	}
 
-	msg := send2slack.Message{
+	msg := sender.Message{
 		Destination: params.channel,
 		Color:       params.color,
 		Text:        inText,
@@ -154,7 +169,7 @@ func send2SlackCli(cmd *cobra.Command, args []string, params cmdParams) {
 	if params.remote != "" || params.localRemote {
 
 		if params.localRemote {
-			params.remote = "http://127.0.0.1:" + strconv.Itoa(send2slack.DefaultPort)
+			params.remote = "http://127.0.0.1:" + strconv.Itoa(config.DefaultPort)
 		}
 
 		// prepend http:// if not provided already
@@ -167,8 +182,8 @@ func send2SlackCli(cmd *cobra.Command, args []string, params cmdParams) {
 			HandleErr(fmt.Errorf("invalid url: %v", err))
 		}
 
-		slackCfg.Mode = send2slack.ModeHttpClient
-		slackCfg.URL = u
+		slackCfg.Mode = config.ModeHttpClient
+		slackCfg.Url = u
 
 		if params.verbose {
 			fmt.Printf("sending message in \"client mode\" to channel: \"%s\" using server: \"%s\" \n", params.channel, params.remote)
@@ -178,10 +193,10 @@ func send2SlackCli(cmd *cobra.Command, args []string, params cmdParams) {
 		if params.verbose {
 			fmt.Printf("sending message in \"direct mode\" to channel: \"%s\"\n", params.channel)
 		}
-		slackCfg.Mode = send2slack.ModeDirectCli
+		slackCfg.Mode = config.ModeDirectCli
 	}
 
-	slackSender, err := send2slack.NewSlackSender(slackCfg)
+	slackSender, err := sender.NewSlackSender(slackCfg)
 	HandleErr(err)
 
 	err = slackSender.SendMessage(&msg)
@@ -194,36 +209,6 @@ func send2SlackCli(cmd *cobra.Command, args []string, params cmdParams) {
 		HandleErr(err)
 	}
 }
-
-// send to slack command executed when the binary is called sendmail or the debug ENV is set.
-// this removes all cobra features and makes send2slack compatible with sendmail by avoiding flag parses
-//func SendmailCmd() {
-//
-//	//["/usr/sbin/sendmail", "-FCronDaemon", "-i", "-B8BITMIME", "-oem", "vagrant"]
-//
-//	//var err error
-//	//slack := send2slack.NewSlackMsg(cfg.Token)
-//	//slack.Channel = cfg.SendmailChannel
-//	//slack.Text = ""
-//	//slack.Detail, err = send2slack.InReader(1000000) // 1MB
-//	//if err != nil {
-//	//	HandleErr(err)
-//	//}
-//	//err = slack.SendMail()
-//	//if err != nil {
-//	//	HandleErr(err)
-//	//}
-//
-//	slackCfg := getSend2SlackConfig(slackCmdConf{})
-//
-//
-//	slackSender, err := send2slack.NewSlackSender(slackCfg)
-//	HandleErr(err)
-//	_ = slackSender
-//	//err = slackSender.SendMessage(&slackMsg)
-//	//HandleErr(err)
-//
-//}
 
 func HandleErr(err error) {
 	if err != nil {

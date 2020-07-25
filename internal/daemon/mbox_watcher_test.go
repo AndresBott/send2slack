@@ -1,10 +1,12 @@
-package send2slack_test
+package daemon_test
 
 import (
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
-	"send2slack/internal/send2slack"
+	"send2slack/internal/config"
+	"send2slack/internal/daemon"
+	"send2slack/internal/sender"
 	"testing"
 	"time"
 )
@@ -21,11 +23,11 @@ func TestStartAndStopDirWatcher(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	// start the server
-	cfg := send2slack.Config{
+	cfg := config.DaemonConfig{
 		WatchDir: dir,
 	}
 
-	dw, err := send2slack.NewDirWatcher(&cfg)
+	dw, err := daemon.NewDirWatcher(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,16 +66,16 @@ func TestDirWatcher_ConsumeMbox(t *testing.T) {
 	//spew.Dump(dir)
 
 	// start the server
-	cfg := send2slack.Config{
+	cfg := config.DaemonConfig{
 		WatchDir: dir,
 	}
 
-	dw, err := send2slack.NewDirWatcher(&cfg)
+	dw, err := daemon.NewDirWatcher(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	dummySender := send2slack.DummyMessageSender{}
+	dummySender := sender.DummyMessageSender{}
 	dummySender.Msg = "TestStartAndStopDirWatcher"
 
 	// set the sender to use dummy
@@ -131,15 +133,15 @@ func TestDirWatcher_ConsumeMboxDir(t *testing.T) {
 		defer os.RemoveAll(dir)
 		//spew.Dump(dir)
 
-		cfg := send2slack.Config{
+		cfg := config.DaemonConfig{
 			WatchDir: dir,
 		}
-		dw, err := send2slack.NewDirWatcher(&cfg)
+		dw, err := daemon.NewDirWatcher(&cfg)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		dummySender := send2slack.DummyMessageSender{}
+		dummySender := sender.DummyMessageSender{}
 		dummySender.Msg = "ConsumeMboxDir"
 
 		// set the sender to use dummy
@@ -163,15 +165,15 @@ func TestDirWatcher_ConsumeMboxDir(t *testing.T) {
 		defer os.RemoveAll(dir)
 		//spew.Dump(dir)
 
-		cfg := send2slack.Config{
+		cfg := config.DaemonConfig{
 			WatchDir: dir,
 		}
-		dw, err := send2slack.NewDirWatcher(&cfg)
+		dw, err := daemon.NewDirWatcher(&cfg)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		dummySender := send2slack.DummyMessageSender{}
+		dummySender := sender.DummyMessageSender{}
 		dummySender.Msg = "ConsumeMboxDir"
 
 		// set the sender to use dummy
@@ -201,15 +203,15 @@ func TestDirWatcher_ConsumeMboxDir(t *testing.T) {
 		defer os.RemoveAll(dir)
 		//spew.Dump(dir)
 
-		cfg := send2slack.Config{
+		cfg := config.DaemonConfig{
 			WatchDir: dir,
 		}
-		dw, err := send2slack.NewDirWatcher(&cfg)
+		dw, err := daemon.NewDirWatcher(&cfg)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		dummySender := send2slack.DummyMessageSender{}
+		dummySender := sender.DummyMessageSender{}
 		dummySender.Msg = "ConsumeMboxDir"
 
 		// set the sender to use dummy

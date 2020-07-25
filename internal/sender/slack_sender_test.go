@@ -1,4 +1,4 @@
-package send2slack_test
+package sender_test
 
 import (
 	"encoding/json"
@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"send2slack/internal/send2slack"
+	"send2slack/internal/config"
+	"send2slack/internal/sender"
 	"strings"
 	"testing"
 )
@@ -15,7 +16,7 @@ import (
 type test struct {
 	description  string
 	responseCode int
-	msg          send2slack.Message
+	msg          sender.Message
 	errorString  string
 }
 
@@ -24,7 +25,7 @@ func TestNewSlackSenderClient(t *testing.T) {
 		{
 			description:  "simple message",
 			responseCode: http.StatusAccepted,
-			msg: send2slack.Message{
+			msg: sender.Message{
 				Text: "test",
 			},
 			errorString: "",
@@ -53,7 +54,7 @@ func TestNewSlackSenderClient(t *testing.T) {
 				//and it is the server that needs to then transform that to slak mesage or other in the send2slack.EmptyBodyError
 				//
 				//therefore the server needs also to implement the sender interface
-				var got send2slack.Message
+				var got sender.Message
 				err := decoder.Decode(&got)
 				if err != nil {
 					t.Fatal("error decoding request body")
@@ -75,9 +76,9 @@ func TestNewSlackSenderClient(t *testing.T) {
 			defer ts.Close()
 
 			u, _ := url.ParseRequestURI(ts.URL)
-			c, err := send2slack.NewSlackSender(&send2slack.Config{
-				URL:  u,
-				Mode: send2slack.ModeHttpClient,
+			c, err := sender.NewSlackSender(&config.ClientConfig{
+				Url:  u,
+				Mode: config.ModeHttpClient,
 			})
 			if err != nil {
 				t.Fatal(err)

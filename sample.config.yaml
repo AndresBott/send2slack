@@ -6,7 +6,7 @@ slack:
   ## the default channel if none are specified
   default_channel: "general"
   ## the default channel to deliver mails to, used if not defined with header in email
-  sendmail_channel: "general"
+  email_channel: "general"
 
 daemon:
   ##  bind address for the server, i.e :<port> or <ip>:<port> 127.0.0.1:9698

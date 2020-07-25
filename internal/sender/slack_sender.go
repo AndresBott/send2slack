@@ -1,4 +1,4 @@
-package send2slack
+package sender
 
 import (
 	"bytes"
@@ -8,13 +8,14 @@ import (
 	"github.com/slack-go/slack"
 	"net/http"
 	"net/url"
+	"send2slack/internal/config"
 	"text/template"
 )
 
 type SlackSender struct {
 	// todo add destination for error sending
 	client        *slack.Client
-	mode          Mode
+	mode          config.Mode
 	url           *url.URL
 	emailTemplate string
 	defMailDest   string
@@ -25,10 +26,10 @@ type slackMessage struct {
 	att *slack.Attachment
 }
 
-func NewSlackSender(cfg *Config) (*SlackSender, error) {
+func NewSlackSender(cfg *config.ClientConfig) (*SlackSender, error) {
 
-	if cfg.Mode == ModeHttpClient {
-		if cfg.URL == nil {
+	if cfg.Mode == config.ModeHttpClient {
+		if cfg.Url == nil {
 			return nil, fmt.Errorf("url cannot be empty")
 		}
 	}
@@ -36,7 +37,7 @@ func NewSlackSender(cfg *Config) (*SlackSender, error) {
 	sl := SlackSender{
 		client:      slack.New(cfg.Token),
 		mode:        cfg.Mode,
-		url:         cfg.URL,
+		url:         cfg.Url,
 		defMailDest: cfg.SendmailChannel,
 	}
 	return &sl, nil
@@ -51,14 +52,14 @@ func (c *SlackSender) SendMessage(msg *Message) error {
 	}
 
 	switch c.mode {
-	case ModeDirectCli:
+	case config.ModeDirectCli:
 
 		slkMsg, err := c.transformMsg(msg)
 		if err != nil {
 			return err
 		}
 		return c.sendMsgDirecCli(slkMsg)
-	case ModeMailSending:
+	case config.ModeMailSending:
 		slkMsg, err := c.transformMsg(msg)
 		if err != nil {
 			return err
@@ -68,11 +69,11 @@ func (c *SlackSender) SendMessage(msg *Message) error {
 		}
 		return c.sendMsgDirecCli(slkMsg)
 
-	case ModeHttpClient:
+	case config.ModeHttpClient:
 		return c.sendMsgHttpClient(msg)
 
 	default:
-		return errors.New("SlackSlackSender mode not found")
+		return errors.New("SlackSender mode not found")
 	}
 }
 
