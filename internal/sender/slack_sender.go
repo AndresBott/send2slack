@@ -75,7 +75,7 @@ func (c *SlackSender) SendError(err error) {
 		Text:  err.Error(),
 		Color: "red",
 	}
-	c.SendMessage(&msg)
+	_ = c.SendMessage(&msg)
 }
 
 // default template used to generate the slack message based on an email
@@ -84,6 +84,7 @@ const DefaultMailTemplate = `*[EMAIL]*
 From: _ {{ index .Meta "from" }} _ 
 To:  _ {{ index .Meta "to" }} _ 
 Date: _ {{ .Date }} _ 
+Subject: _ {{ index .Meta "subject" }} _  
 ` + "```" + `{{ .Text }}` + "```"
 
 func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {

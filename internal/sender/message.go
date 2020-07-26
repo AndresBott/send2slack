@@ -91,14 +91,6 @@ func NewMessageFromMailStr(in string) (*Message, error) {
 	}
 	m.Body = sb.String()
 
-	//// check that we don't have a empty body
-	//if len(m.Body) <= 20 {
-	//	s := strings.TrimSpace(m.Body)
-	//	if len(s) == 0 {
-	//		return nil, errors.New("message body cannot be empty")
-	//	}
-	//}
-
 	return NewMessageFromMail(m)
 
 }

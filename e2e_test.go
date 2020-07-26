@@ -546,6 +546,12 @@ func writeMailToMbox(file string, body string) error {
 		`From www-data@amelia.com  Thu Dec 21 05:00:01 2017
 From: root@amelia.com (Cron Daemon)
 To: www-data@amelia.com
+Date: Sun, 16 Apr 2017 05:00:01 +0200 (CEST)
+Subject: Cron <www-data@amelia> test -x /usr/share/roundcube/bin/cleandb.sh && /usr/share/roundcube/bin/cleandb.sh >/dev/null
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/var/www>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=www-data>
 x-slack-channel: trash
 
 `
