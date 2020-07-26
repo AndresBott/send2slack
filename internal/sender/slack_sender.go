@@ -10,15 +10,16 @@ import (
 	"net/url"
 	"send2slack/internal/config"
 	"text/template"
+	"time"
 )
 
 type SlackSender struct {
 	// todo add destination for error sending
-	client        *slack.Client
-	mode          config.Mode
-	url           *url.URL
-	emailTemplate string
-	defMailDest   string
+	client             *slack.Client
+	mode               config.Mode
+	url                *url.URL
+	emailTemplate      string
+	defaultDestination string
 }
 
 type slackMessage struct {
@@ -35,10 +36,10 @@ func NewSlackSender(cfg *config.ClientConfig) (*SlackSender, error) {
 	}
 
 	sl := SlackSender{
-		client:      slack.New(cfg.Token),
-		mode:        cfg.Mode,
-		url:         cfg.Url,
-		defMailDest: cfg.SendmailChannel,
+		client:             slack.New(cfg.Token),
+		mode:               cfg.Mode,
+		url:                cfg.Url,
+		defaultDestination: cfg.DefChannel,
 	}
 	return &sl, nil
 }
@@ -52,23 +53,14 @@ func (c *SlackSender) SendMessage(msg *Message) error {
 	}
 
 	switch c.mode {
-	case config.ModeDirectCli:
+	case config.ModeDirectCli, config.ModeMailSending:
 
 		slkMsg, err := c.transformMsg(msg)
 		if err != nil {
 			return err
 		}
-		return c.sendMsgDirecCli(slkMsg)
-	case config.ModeMailSending:
-		slkMsg, err := c.transformMsg(msg)
-		if err != nil {
-			return err
-		}
-		if slkMsg.Destination == "" {
-			slkMsg.Destination = c.defMailDest
-		}
-		return c.sendMsgDirecCli(slkMsg)
 
+		return c.sendMsgDirecCli(slkMsg)
 	case config.ModeHttpClient:
 		return c.sendMsgHttpClient(msg)
 
@@ -87,14 +79,29 @@ func (c *SlackSender) SendError(err error) {
 }
 
 // default template used to generate the slack message based on an email
-const DefaultMailTemplate = `*[EMAIL]* from: _ {{ index .Meta "from" }} _ ` + "```" + `{{ .Text }}` + "```"
+//const DefaultMailTemplate = `*[EMAIL]* from: _ {{ index .Meta "from" }} _ ` + "```" + `{{ .Text }}` + "```"
+const DefaultMailTemplate = `*[EMAIL]* 
+From: _ {{ index .Meta "from" }} _ 
+To:  _ {{ index .Meta "to" }} _ 
+Date: _ {{ .Date }} _ 
+` + "```" + `{{ .Text }}` + "```"
 
 func (c *SlackSender) transformMsg(msg *Message) (*slackMessage, error) {
+
+	date, err := time.Parse(time.RFC1123Z, msg.Meta["date"])
+	if err == nil {
+		msg.Date = date
+	}
 
 	slkMsg := slackMessage{
 		att: &slack.Attachment{},
 	}
+
+	if msg.Destination == "" {
+		msg.Destination = c.defaultDestination
+	}
 	slkMsg.Destination = msg.Destination
+
 	slkMsg.Debug = msg.Debug
 	slkMsg.Meta = msg.Meta
 	slkMsg.Text = msg.Text

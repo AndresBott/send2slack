@@ -18,6 +18,8 @@ type handler struct {
 
 func New(fname string) (*handler, error) {
 
+	// todo: deal with permission denied ( i.e wring user)
+
 	absFname, err := filepath.Abs(fname)
 	if err != nil {
 		return nil, err
@@ -148,6 +150,9 @@ func (h *handler) ReadLastMail(delete bool) ([][]byte, error) {
 // HasMails checks if the file handler cursor has reached the beginning of the file,
 // returning true as long as there are still bytes to read
 func (h *handler) HasMails() bool {
+	if h.fSize == 0 {
+		return false
+	}
 	if h.cursor <= -h.fSize {
 		return false
 	}

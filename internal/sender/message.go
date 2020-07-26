@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"strings"
+	"time"
 )
 
 type Message struct {
@@ -13,6 +14,7 @@ type Message struct {
 	Color       string
 	Debug       bool
 	Meta        map[string]string
+	Date        time.Time
 }
 
 type Email struct {

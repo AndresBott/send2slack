@@ -14,7 +14,7 @@ import (
 func TestStartAndStopDirWatcher(t *testing.T) {
 
 	// don't print log messages during tests
-	logrus.SetLevel(logrus.WarnLevel)
+	logrus.SetLevel(logrus.ErrorLevel)
 
 	dir, err := ioutil.TempDir("/tmp", "s2s_watcher")
 	if err != nil {
@@ -56,7 +56,7 @@ func TestStartAndStopDirWatcher(t *testing.T) {
 
 func TestDirWatcher_ConsumeMbox(t *testing.T) {
 	// don't print log messages during tests
-	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetLevel(logrus.ErrorLevel)
 
 	dir, err := ioutil.TempDir("/tmp", "s2s_watcher")
 	if err != nil {
@@ -122,7 +122,7 @@ func TestDirWatcher_ConsumeMbox(t *testing.T) {
 
 func TestDirWatcher_ConsumeMboxDir(t *testing.T) {
 	// don't print log messages during tests
-	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetLevel(logrus.ErrorLevel)
 
 	t.Run("empty mbox dir", func(t *testing.T) {
 
@@ -134,7 +134,8 @@ func TestDirWatcher_ConsumeMboxDir(t *testing.T) {
 		//spew.Dump(dir)
 
 		cfg := config.DaemonConfig{
-			WatchDir: dir,
+			WatchDir:       dir,
+			MailThrottling: 5,
 		}
 		dw, err := daemon.NewDirWatcher(&cfg)
 		if err != nil {

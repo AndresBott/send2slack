@@ -45,42 +45,11 @@ func NewMailFromBytes(input [][]byte) *Mail {
 		}
 	}
 
-	m.Body = sb.String()
+	body := sb.String()
+	// remove last \n from mails
+	if len(body) > 0 && body[len(body)-1:] == "\n" {
+		body = body[0 : len(body)-1]
+	}
+	m.Body = body
 	return &m
 }
-
-// TODO: uncomment and solve if needed in the future
-//func NewMailFromStr( input string)*Mail  {
-//	m := Mail{
-//		Headers: map[string]string{},
-//		Body: "",
-//	}
-//
-//	scanner := bufio.NewScanner(strings.NewReader(input))
-//	// get the Headers
-//	for scanner.Scan() {
-//		s := scanner.Text()
-//
-//		// exit the head section on the first empty line
-//		if strings.TrimSpace(s) == "" {
-//			break
-//		}
-//		s = strings.Trim(s, "\n")
-//
-//		splited := strings.SplitN(s, ":", 2)
-//		// slit character not found
-//		if len(splited) <= 1 {
-//			continue
-//		}
-//		m.Headers[strings.ToLower(strings.TrimSpace(splited[0]))] = strings.TrimSpace(splited[1])
-//	}
-//
-//	var sb strings.Builder
-//	for scanner.Scan() {
-//		s := scanner.Text()
-//		sb.WriteString(s + "\n")
-//	}
-//	m.Body = sb.String()
-//
-//	return &m
-//}

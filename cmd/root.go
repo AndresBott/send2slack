@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"net/url"
 	"os"
 	"send2slack/internal/config"
@@ -15,15 +17,21 @@ import (
 type cmdParams struct {
 	printExtHelp bool // print extended help
 	verbose      bool
+	version      bool
 	configFile   string
 	server       bool
+	watcher      bool
 	remote       string
 	localRemote  bool
 	channel      string
 	color        string
 }
 
-const Version = "0.2.0"
+var (
+	Version = ""
+	Commit  = ""
+	Date    = ""
+)
 
 // execute the normal mode command, NOT replacing sendmail
 func Run() {
@@ -43,9 +51,11 @@ The send2slack behaves differently depending on configuration and invocation:
 		Use: "send2slack (message)",
 		Run: func(cmd *cobra.Command, args []string) {
 
-			if params.printExtHelp {
+			if params.version {
+				printVersion()
+			} else if params.printExtHelp {
 				extendedHelp()
-			} else if params.server {
+			} else if params.server || params.watcher {
 				// start in server mode
 				send2SlackDaemon(params)
 			} else {
@@ -60,10 +70,12 @@ The send2slack behaves differently depending on configuration and invocation:
 	}
 	cmd.Flags().BoolVarP(&params.printExtHelp, "extended-help", "H", false, "print the extended help")
 	cmd.Flags().BoolVarP(&params.verbose, "verbose", "v", false, "verbose mode")
+	cmd.Flags().BoolVarP(&params.version, "version", "V", false, "print version")
 
 	cmd.Flags().StringVarP(&params.configFile, "config", "f", "", "config file")
 
 	cmd.Flags().BoolVarP(&params.server, "server", "s", false, "run in server mode")
+	cmd.Flags().BoolVarP(&params.watcher, "watch", "w", false, "run in mbox watcher mode")
 
 	cmd.Flags().StringVarP(&params.remote, "remote", "r", "", "send message to remote proxy server")
 	cmd.Flags().BoolVarP(&params.localRemote, "local-remote", "R", false, "same as \"remote\" but uses \"127.0.0.1:"+strconv.Itoa(config.DefaultPort)+"\" as destination")
@@ -82,22 +94,41 @@ func extendedHelp() {
 	fmt.Println("todo: Extended help")
 }
 
+func printVersion() {
+
+	v := `Version: ` + Version + `
+Commit id: ` + Commit + `
+Build date: ` + Date
+	fmt.Println(v)
+}
+
 // getSend2SlackDaemonConfig uses the cli parameters to create a daemon config
 func getSend2SlackDaemonConfig(params cmdParams) *config.DaemonConfig {
-	if params.verbose {
-		if params.configFile == "" {
-			cfgFile := " /etc/send2slack/server.yaml | $HOME/.send2slack/server.yaml | ./server.yaml "
-			fmt.Printf("loading server configuration file from: %s \n", cfgFile)
-		} else {
-			fmt.Printf("loading server configuration file: \"%s\"\n", params.configFile)
-		}
+
+	if params.configFile == "" {
+		cfgFile := " /etc/send2slack/server.yaml | $HOME/.send2slack/server.yaml | ./server.yaml "
+		logrus.Infof("loading server configuration file from: %s", cfgFile)
+	} else {
+		logrus.Infof("loading server configuration file: \"%s\"", params.configFile)
 	}
 
 	cfg, err := config.NewDaemonConfig(params.configFile)
 	HandleErr(err)
 
-	if cfg.IsDefault && params.verbose {
-		fmt.Printf("configuration file not found, using default values\n")
+	if cfg.IsDefault {
+		logrus.Infof("configuration file not found, using default values")
+	} else {
+		logrus.Infof("using configuration file: %s", viper.ConfigFileUsed())
+	}
+
+	// disable watcher if not enabled with flag
+	if !params.watcher {
+		cfg.WatchDir = "false"
+	}
+
+	// disable server if not enabled with flag
+	if !params.server {
+		cfg.ListenUrl = "false"
 	}
 
 	return cfg
@@ -117,7 +148,7 @@ func send2SlackDaemon(params cmdParams) {
 func getSend2SlackClientConfig(params cmdParams) *config.ClientConfig {
 	if params.verbose {
 		if params.configFile == "" {
-			cfgFile := " /etc/send2slack/config.yaml | $HOME/.send2slack/config.yaml | ./config.yaml "
+			cfgFile := " /etc/send2slack/client.yaml | $HOME/.send2slack/client.yaml | ./client.yaml "
 			fmt.Printf("loading configuration file from: %s \n", cfgFile)
 		} else {
 			fmt.Printf("loading configuration file: \"%s\"\n", params.configFile)
@@ -127,8 +158,12 @@ func getSend2SlackClientConfig(params cmdParams) *config.ClientConfig {
 	slackCfg, err := config.NewClientConfig(params.configFile)
 	HandleErr(err)
 
-	if slackCfg.IsDefault && params.verbose {
-		fmt.Printf("configuration file not found, using default values\n")
+	if params.verbose {
+		if slackCfg.IsDefault {
+			fmt.Printf("configuration file not found, using default values\n")
+		} else {
+			fmt.Printf("using configuration file: %s\n", viper.ConfigFileUsed())
+		}
 	}
 
 	return slackCfg
@@ -190,10 +225,14 @@ func send2SlackCli(cmd *cobra.Command, args []string, params cmdParams) {
 		}
 
 	} else {
-		if params.verbose {
-			fmt.Printf("sending message in \"direct mode\" to channel: \"%s\"\n", params.channel)
+		// if uri has been defined in configuration we ignore the direct cli fallback
+		if slackCfg.Url == nil {
+			if params.verbose {
+				fmt.Printf("sending message in \"direct mode\" to channel: \"%s\"\n", params.channel)
+			}
+			slackCfg.Mode = config.ModeDirectCli
 		}
-		slackCfg.Mode = config.ModeDirectCli
+
 	}
 
 	slackSender, err := sender.NewSlackSender(slackCfg)

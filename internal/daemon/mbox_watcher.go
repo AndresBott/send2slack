@@ -81,6 +81,7 @@ type DirWatcher struct {
 	watcher        *fsnotify.Watcher
 	running        int32
 	filesConsuming *itemList
+	throttling     int
 }
 
 func NewDirWatcher(cfg *config.DaemonConfig) (*DirWatcher, error) {
@@ -95,11 +96,10 @@ func NewDirWatcher(cfg *config.DaemonConfig) (*DirWatcher, error) {
 	}
 
 	senderCfg := &config.ClientConfig{
-		Token:           cfg.Token,
-		IsDefault:       cfg.IsDefault,
-		DefChannel:      cfg.DefChannel,
-		SendmailChannel: cfg.SendmailChannel,
-		Mode:            config.ModeDirectCli,
+		Token:      cfg.Token,
+		IsDefault:  cfg.IsDefault,
+		DefChannel: cfg.SendmailChannel,
+		Mode:       config.ModeDirectCli,
 	}
 
 	sndr, err := sender.NewSlackSender(senderCfg)
@@ -112,6 +112,7 @@ func NewDirWatcher(cfg *config.DaemonConfig) (*DirWatcher, error) {
 		path:           cfg.WatchDir,
 		filesConsuming: newItemList(),
 		MsgSender:      sndr,
+		throttling:     cfg.MailThrottling,
 	}
 	return &dw, nil
 }
@@ -223,7 +224,6 @@ func (dw *DirWatcher) ConsumeMbox(file string, blockExec bool) {
 			}
 
 			for hand.HasMails() {
-
 				mailBytes, err := hand.ReadLastMail(true)
 
 				if err != nil {
@@ -235,6 +235,11 @@ func (dw *DirWatcher) ConsumeMbox(file string, blockExec bool) {
 				}
 
 				mail := mbox.NewMailFromBytes(mailBytes)
+				if mail.Body == "" && len(mail.Headers) == 0 {
+					// avoid reading double mail
+					continue
+				}
+
 				msg, err := sender.NewMessageFromMail(sender.Email(*mail))
 
 				if err != nil {
@@ -246,10 +251,11 @@ func (dw *DirWatcher) ConsumeMbox(file string, blockExec bool) {
 				if err != nil {
 					log.Error(err)
 				}
-
+				// throttle email submissions
+				time.Sleep(time.Duration(dw.throttling) * time.Millisecond)
 			}
 
-			log.Info("Finished: => " + file)
+			log.Info("finished processing file: " + file)
 			dw.filesConsuming.disable(file)
 			done <- true
 		}(file)

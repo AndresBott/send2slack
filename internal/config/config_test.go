@@ -2,6 +2,8 @@ package config_test
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"github.com/spf13/viper"
+	"net/url"
 	"send2slack/internal/config"
 	"strings"
 	"testing"
@@ -15,13 +17,32 @@ type configTc struct {
 	expectedErr    string
 }
 
+func getUrl(s string) *url.URL {
+	u, _ := url.ParseRequestURI(s)
+	return u
+}
+
 func TestNewClientConfig(t *testing.T) {
+
 	tcs := []configTc{
 		{
 			name: "test default config on non existent file",
 			file: "sampledata/doesNotExist",
 			ClientExpected: &config.ClientConfig{
 				IsDefault: true,
+				Mode:      config.ModeDirectCli,
+			},
+			expectedErr: "",
+		},
+		{
+			name: "test sample file",
+			file: "sampledata/client.yaml",
+			ClientExpected: &config.ClientConfig{
+				IsDefault:  false,
+				DefChannel: "general",
+				Token:      "my_token",
+				Mode:       config.ModeHttpClient,
+				Url:        getUrl("http://127.0.0.1:4789"),
 			},
 			expectedErr: "",
 		},
@@ -29,6 +50,8 @@ func TestNewClientConfig(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
+
+			viper.Reset()
 
 			cfg, err := config.NewClientConfig(tc.file)
 
@@ -61,9 +84,10 @@ func TestNewDaemonConfig(t *testing.T) {
 			name: "test default config on non existent file",
 			file: "sampledata/doesNotExist",
 			DaemonExpected: &config.DaemonConfig{
-				IsDefault: true,
-				ListenUrl: "127.0.0.1:4789",
-				WatchDir:  "false",
+				IsDefault:      true,
+				ListenUrl:      "127.0.0.1:4789",
+				WatchDir:       "false",
+				MailThrottling: 1000,
 			},
 			expectedErr: "",
 		},
@@ -71,10 +95,13 @@ func TestNewDaemonConfig(t *testing.T) {
 			name: "test sample file",
 			file: "sampledata/server.yaml",
 			DaemonExpected: &config.DaemonConfig{
-				IsDefault: false,
-				ListenUrl: "127.0.0.1:1234",
-				WatchDir:  "/var/mail",
-				Token:     "my_token",
+				IsDefault:       false,
+				ListenUrl:       "127.0.0.1:1234",
+				WatchDir:        "/var/mail",
+				Token:           "my_token",
+				DefChannel:      "general",
+				SendmailChannel: "general",
+				MailThrottling:  1000,
 			},
 			expectedErr: "",
 		},
@@ -82,6 +109,8 @@ func TestNewDaemonConfig(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
+
+			viper.Reset()
 
 			cfg, err := config.NewDaemonConfig(tc.file)
 

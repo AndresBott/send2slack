@@ -31,12 +31,15 @@ func NewServer(cfg *config.DaemonConfig) (*Server, error) {
 		port = config.DefaultPort
 	}
 
+	if cfg.Token == "" {
+		log.Warn("Token is not defined, the server will not be able to send messages")
+	}
+
 	senderCfg := &config.ClientConfig{
-		Token:           cfg.Token,
-		IsDefault:       cfg.IsDefault,
-		DefChannel:      cfg.DefChannel,
-		SendmailChannel: cfg.SendmailChannel,
-		Mode:            config.ModeDirectCli,
+		Token:      cfg.Token,
+		IsDefault:  cfg.IsDefault,
+		DefChannel: cfg.DefChannel,
+		Mode:       config.ModeDirectCli,
 	}
 
 	sender, err := sender.NewSlackSender(senderCfg)

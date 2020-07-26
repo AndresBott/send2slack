@@ -34,7 +34,7 @@ func TestNewMailFromBytes(t *testing.T) {
 					"from": "root@amelia.com (Cron Daemon)",
 					"to":   "www-data@amelia.com",
 				},
-				Body: "This email is slightly different\n\n\n\nand contains some empty lines as well as ending on empty lines\n\n\n",
+				Body: "This email is slightly different\n\n\n\nand contains some empty lines as well as ending on empty lines\n\n",
 			},
 		},
 	}
@@ -56,27 +56,3 @@ func TestNewMailFromBytes(t *testing.T) {
 	}
 
 }
-
-//func TestNewMailFromStr(t *testing.T) {
-//
-//	filename := "test-data/simple-mail.txt"
-//
-//	content, err := ioutil.ReadFile(filename)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//
-//	got := mbox.NewMailFromStr(string(content))
-//
-//	expected := mbox.Mail{
-//		Headers: map[string]string{
-//			"from":"root@amelia.com (Cron Daemon)",
-//			"to":"www-data@amelia.com",
-//		},
-//		Body: "This is the email body\nwe add just some more\nlines\n",
-//	}
-//
-//	if diff := cmp.Diff(expected, got); diff != "" {
-//		t.Errorf("Mail mismatch (-want +got):\n%s", diff)
-//	}
-//}

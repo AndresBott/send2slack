@@ -2,6 +2,7 @@ package daemon_test
 
 import (
 	"github.com/phayes/freeport"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"send2slack/internal/config"
@@ -14,7 +15,7 @@ import (
 func TestStartAndStopDaemon(t *testing.T) {
 
 	// don't print log messages during tests
-	//logrus.SetLevel(logrus.WarnLevel)
+	logrus.SetLevel(logrus.ErrorLevel)
 
 	tmpPath, _, err := prePateStage()
 	if err != nil {
@@ -71,7 +72,7 @@ func prePateStage() (path string, port int, er error) {
 	// create the config file
 	cfgStr := `---
 slack:
-  token: "my_token"
+  token: "my_token2"
   default_channel: "general"
   sendmail_channel: "general"
 daemon:

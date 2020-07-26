@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type Mode int
@@ -17,17 +18,6 @@ const (
 )
 const DefaultPort = 4789
 
-//type config struct {
-//	IsDefault       bool     // set to true if no configuration file could be loaded
-//	ListenUrl       string   // used by the server, listen address
-//	WatchDir        string   // used by the server, watch for mbox dir
-//	URL             *url.URL // used by the client, send url
-//	Token           string
-//	DefChannel      string
-//	SendmailChannel string
-//	Mode            Mode
-//}
-
 func readConfigFile(cfgFile string) (bool, error) {
 
 	if cfgFile != "" {
@@ -38,10 +28,9 @@ func readConfigFile(cfgFile string) (bool, error) {
 		viper.AddConfigPath(filepath.Dir(absPath))
 		viper.SetConfigName(filepath.Base(absPath))
 	} else {
-		viper.SetConfigName("config.yaml")
-		viper.AddConfigPath("/etc/send2slack/")
-		viper.AddConfigPath("$HOME/.send2slack")
 		viper.AddConfigPath(".")
+		viper.AddConfigPath("$HOME/.send2slack")
+		viper.AddConfigPath("/etc/send2slack/")
 	}
 
 	viper.SetConfigType("yaml")
@@ -69,19 +58,23 @@ type DaemonConfig struct {
 	Token           string
 	DefChannel      string
 	SendmailChannel string
+	MailThrottling  int
 }
 
 func NewDaemonConfig(cfgFile string) (*DaemonConfig, error) {
+
+	viper.SetConfigName("server.yaml")
+
 	fileRead, err := readConfigFile(cfgFile)
 	if err != nil {
 		return nil, err
 	}
+
 	// overwrite configuration token if env "SLACK_TOKEN" is set
 	slackToken := viper.GetString("slack.token")
 	if envSlackToken := os.Getenv("SLACK_TOKEN"); envSlackToken != "" {
 		slackToken = envSlackToken
 	}
-
 	// if we loaded config from a file, we are not using the default values
 	defaultConfg := true
 	if fileRead {
@@ -99,27 +92,30 @@ func NewDaemonConfig(cfgFile string) (*DaemonConfig, error) {
 	}
 
 	cfg := DaemonConfig{
-		IsDefault: defaultConfg,
-		Token:     slackToken,
-		//DefChannel:      viper.GetString("slack.default_channel"),
-		//SendmailChannel: viper.GetString("slack.sendmail_channel"),
-		WatchDir:  watchDir,
-		ListenUrl: listenUrl,
+		IsDefault:       defaultConfg,
+		Token:           slackToken,
+		DefChannel:      viper.GetString("slack.default_channel"),
+		SendmailChannel: viper.GetString("slack.email_channel"),
+		WatchDir:        watchDir,
+		ListenUrl:       listenUrl,
+		MailThrottling:  1000,
 	}
 	return &cfg, nil
 }
 
 type ClientConfig struct {
-	IsDefault       bool // set to true if no configuration file could be loaded
-	Mode            Mode
-	Url             *url.URL
-	Token           string
-	DefChannel      string
-	SendmailChannel string
+	IsDefault  bool // set to true if no configuration file could be loaded
+	Mode       Mode
+	Url        *url.URL
+	Token      string
+	DefChannel string
 }
 
 func NewClientConfig(cfgFile string) (*ClientConfig, error) {
+
+	viper.SetConfigName("client.yaml")
 	fileRead, err := readConfigFile(cfgFile)
+
 	if err != nil {
 		return nil, err
 	}
@@ -135,11 +131,30 @@ func NewClientConfig(cfgFile string) (*ClientConfig, error) {
 		defaultConfg = false
 	}
 
+	mode := Mode(ModeDirectCli)
+	var u *url.URL
+
+	remoteUrl := viper.GetString("client.remote_url")
+	if remoteUrl != "" && remoteUrl != "false" {
+
+		if !strings.HasPrefix(remoteUrl, "http://") && !strings.HasPrefix(remoteUrl, "https://") {
+			remoteUrl = "http://" + remoteUrl
+		}
+
+		u, err = url.ParseRequestURI(remoteUrl)
+		if err != nil {
+			u = nil
+			mode = ModeDirectCli
+		}
+		mode = ModeHttpClient
+	}
+
 	cfg := ClientConfig{
-		IsDefault:       defaultConfg,
-		Token:           slackToken,
-		DefChannel:      viper.GetString("slack.default_channel"),
-		SendmailChannel: viper.GetString("slack.sendmail_channel"),
+		IsDefault:  defaultConfg,
+		Token:      slackToken,
+		DefChannel: viper.GetString("slack.default_channel"),
+		Url:        u,
+		Mode:       mode,
 	}
 	return &cfg, nil
 }

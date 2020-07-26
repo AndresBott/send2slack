@@ -1,12 +1,16 @@
+---
 ## slack specific configuration
 slack:
   ## the token used to send messages to
-  token: "my_token"
+  token: ""
   ## the default channel if none are specified
   default_channel: "general"
+  ## the default channel to deliver mails to, used if not defined with header in email
+  email_channel: "general"
 
 client:
   ##  send messages to a http send2slack service, instead of using the token directly
   ## default: 127.0.0.1:4789
   ##  use string false to disable
   remote_url: "127.0.0.1:4789"
+
