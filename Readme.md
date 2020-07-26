@@ -1,3 +1,7 @@
+
+[![CircleCI](https://circleci.com/gh/AndresBott/send2slack.svg?style=svg)](https://circleci.com/gh/AndresBott/send2slack)
+
+
 # send2slack
 
 Simple command line applications to send messages to slack.
