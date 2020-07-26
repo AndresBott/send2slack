@@ -27,8 +27,8 @@ workflows:
 #            tags:
 #              ignore: /v[0-9]+\.[0-9]+\.[0-9]+/
       - test-release:
-          requires:
-            - test
+#          requires:
+#            - test
           filters:
             tags:
               ignore: /v[0-9]+\.[0-9]+\.[0-9]+/
@@ -48,7 +48,7 @@ jobs:
             BINDIR: "./bin"
 
       - run: find
-        
+
       - run: /opt/goreleaser --snapshot --skip-publish --rm-dist
 
   release:
