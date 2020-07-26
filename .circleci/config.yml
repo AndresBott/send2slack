@@ -40,16 +40,16 @@ jobs:
       - image: cimg/go:1.13
     steps:
       - checkout
-      - run: find /
+
       - run:
           name: "download goreleaser to /usr/bin"
           command: curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
           environment:
-            BINDIR: "./bin"
+            BINDIR: "/usr/local/bin"
 
       - run: find
 
-      - run: /opt/goreleaser --snapshot --skip-publish --rm-dist
+      - run: goreleaser --snapshot --skip-publish --rm-dist
 
   release:
     docker:
