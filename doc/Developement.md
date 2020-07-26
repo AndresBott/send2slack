@@ -25,8 +25,6 @@ git tag -a vX.Y.Z -m 'Release version X.Y.Z'
 git push origin vX.Y.Z
 ```
 
-
-
 Once the tag has been correctly created and pushed, just invoke GoReleaser from
 the root of the project.
 
