@@ -26,8 +26,23 @@ workflows:
           filters:
             tags:
               ignore: /v[0-9]+\.[0-9]+\.[0-9]+/
+      - test-release:
+          requires:
+            - test
+          filters:
+            tags:
+              ignore: /v[0-9]+\.[0-9]+\.[0-9]+/
 
 jobs:
+
+  test-release:
+    docker:
+      - image: cimg/go:1.13
+    steps:
+      - checkout
+      - run: curl -sL https://git.io/goreleaser | bash
+      - run: goreleaser --snapshot --skip-publish --rm-dist
+
   release:
     docker:
       - image: cimg/go:1.13
