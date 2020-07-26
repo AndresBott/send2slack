@@ -41,7 +41,7 @@ jobs:
     steps:
       - checkout
       - run: curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
-      - run: goreleaser --snapshot --skip-publish --rm-dist
+      - run: ./bin/goreleaser --snapshot --skip-publish --rm-dist
 
   release:
     docker:
