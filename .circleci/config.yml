@@ -47,6 +47,8 @@ jobs:
           keys:
             - go-mod-v1-{{ checksum "go.sum" }}
 
+      - run: go get -u golang.org/x/lint/golint
+
       - run:
           name: Go lint
           command: "golint --set_exit_status ./..."
