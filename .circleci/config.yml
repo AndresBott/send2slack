@@ -22,13 +22,13 @@ workflows:
               only: /v[0-9]+(\.[0-9]+)*(-.*)*/
   test-workflow:
     jobs:
-      - test:
-          filters:
-            tags:
-              ignore: /v[0-9]+\.[0-9]+\.[0-9]+/
+#      - test:
+#          filters:
+#            tags:
+#              ignore: /v[0-9]+\.[0-9]+\.[0-9]+/
       - test-release:
-          requires:
-            - test
+#          requires:
+#            - test
           filters:
             tags:
               ignore: /v[0-9]+\.[0-9]+\.[0-9]+/
@@ -41,6 +41,7 @@ jobs:
     steps:
       - checkout
       - run: curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
+      - run: git status
       - run: ./bin/goreleaser --snapshot --skip-publish --rm-dist
 
   release:
