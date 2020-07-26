@@ -1,22 +1,24 @@
 project_name: send2slack
 before:
   hooks:
-#    - go mod tidy
+    - go mod download
 
 env_files:
   github_token: ~/.goreleaser/github-token
 
 builds:
-  -
-    id: "send2slack"
+  - id: "send2slack"
     binary: send2slack
-    main: ./send2slack.go
+    main: ./main.go
     env:
       - CGO_ENABLED=0
     goos:
       - linux
     goarch:
+      - 386
       - amd64
+    ldflags:
+      - -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{ .CommitDate }}
 
 archives:
   - name_template: '{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}'
@@ -24,7 +26,40 @@ archives:
     files:
       - Readme.md
       - LICENSE
-      - sample.config.yaml
+      - resources/sample.config.yaml
+
+nfpms:
+#    https://goreleaser.com/customization/nfpm/
+  - file_name_template: '{{ .ProjectName }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    homepage:  https://github.com/AndresBott/send2slack
+
+    description: |
+      Utility tool to send messages and deliver emails to slack
+      Send2Slack is a polimorphic binary that can be used to send messages to slack directly by
+      providing a token; start a http server to proxy the message from the client or
+      consume mbox emails like the ones in /var/mail
+    maintainer: Andres Bott <contact@andresbott.com>
+    license: Apache License 2.0
+    vendor: Andres Bott
+    formats:
+      - deb
+      - rpm
+
+    bindir: /usr/bin
+
+    files:
+      "resources/send2slack.service": "/lib/systemd/system/send2slack.service"
+      "resources/send2slack-mbox-watcher.service": "/lib/systemd/system/send2slack-mbox-watcher.service"
+
+    config_files:
+      "resources/config/client.yaml": "/etc/send2slack/client.yaml"
+      "resources/config/server.yaml": "/etc/send2slack/server.yaml"
+
+    scripts:
+      postinstall: "resources/scripts/postinstall.sh"
+      preremove: "resources/scripts/preremove.sh"
+      postremove: "resources/scripts/postremove.sh"
+
 
 checksum:
   name_template: '{{ .ProjectName }}-checksums.txt'

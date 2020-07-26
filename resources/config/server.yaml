@@ -1,0 +1,18 @@
+---
+## slack specific configuration
+slack:
+  ## the token used to send messages to
+  token: ""
+  ## the default channel if none are specified
+  default_channel: "general"
+  ## the default channel to deliver mails to, used if not defined with header in email
+  email_channel: "general"
+
+daemon:
+  ##  bind address for the server, i.e :<port> or <ip>:<port> 127.0.0.1:4789
+  ##  use string false to disable
+  listen_url: "127.0.0.1:4789"
+
+  ## path for the mbox to watch, default should be /var/mail
+  ##  use string false to disable
+  mbox_watch: "/var/mail"

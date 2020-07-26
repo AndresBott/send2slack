@@ -1,0 +1,261 @@
+From MAILER-DAEMON  Sun Jun 17 03:19:04 2018
+Return-Path: <>
+X-Original-To: ttrss@amelia.rivervps.com
+Delivered-To: ttrss@amelia.rivervps.com
+Received: by amelia.rivervps.com (Postfix)
+        id 8232E5BF; Sun, 17 Jun 2018 03:19:04 +0200 (CEST)
+Date: Sun, 17 Jun 2018 03:19:04 +0200 (CEST)
+From: MAILER-DAEMON@amelia.rivervps.com (Mail Delivery System)
+Subject: Undelivered Mail Returned to Sender
+To: ttrss@amelia.rivervps.com
+Auto-Submitted: auto-replied
+MIME-Version: 1.0
+Content-Type: multipart/report; report-type=delivery-status;
+        boundary="E27AD128.1529198344/amelia.rivervps.com"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20180617011904.8232E5BF@amelia.rivervps.com>
+
+This is a MIME-encapsulated message.
+
+--E27AD128.1529198344/amelia.rivervps.com
+Content-Description: Notification
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+This is the mail system at host amelia.rivervps.com.
+
+I'm sorry to have to inform you that your message could not
+be delivered to one or more recipients. It's attached below.
+
+For further assistance, please send mail to postmaster.
+
+If you do so, please include this problem report. You can
+delete your own text from the attached returned message.
+
+                   The mail system
+
+<notificaciones@andresbott.com>: mail for andresbott.com loops back to myself
+
+--E27AD128.1529198344/amelia.rivervps.com
+Content-Description: Delivery report
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; amelia.rivervps.com
+X-Postfix-Queue-ID: E27AD128
+X-Postfix-Sender: rfc822; ttrss@amelia.rivervps.com
+Arrival-Date: Sun, 17 Jun 2018 02:30:01 +0200 (CEST)
+
+Final-Recipient: rfc822; notificaciones@andresbott.com
+Original-Recipient: rfc822;notificaciones@andresbott.com
+Action: failed
+Status: 5.4.6
+Diagnostic-Code: X-Postfix; mail for andresbott.com loops back to myself
+
+--E27AD128.1529198344/amelia.rivervps.com
+Content-Description: Undelivered Message
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 8bit
+
+Return-Path: <ttrss@amelia.rivervps.com>
+Received: by amelia.rivervps.com (Postfix, from userid 1107)
+        id E27AD128; Sun, 17 Jun 2018 02:30:01 +0200 (CEST)
+From: root@amelia.rivervps.com (Cron Daemon)
+To: notificaciones@andresbott.com
+Subject: Cron <ttrss@amelia> /usr/bin/php /vhosts/ttrss/home_dir/public_html/update.php  --feeds --quiet
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <MAILTO=notificaciones@andresbott.com>
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/vhosts/ttrss/home_dir>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=ttrss>
+Message-Id: <20180617011903.E27AD128@amelia.rivervps.com>
+Date: Sun, 17 Jun 2018 02:30:01 +0200 (CEST)
+
+<pre>Exception while creating PDO object:SQLSTATE[HY000] [1045] Access denied for user 'ttrss'@'localhost' (using password: YES)</pre>
+
+--E27AD128.1529198344/amelia.rivervps.com--
+
+From MAILER-DAEMON  Sun Jun 17 03:19:10 2018
+Return-Path: <>
+X-Original-To: ttrss@amelia.rivervps.com
+Delivered-To: ttrss@amelia.rivervps.com
+Received: by amelia.rivervps.com (Postfix)
+        id AF8D7C7C; Sun, 17 Jun 2018 03:19:10 +0200 (CEST)
+Date: Sun, 17 Jun 2018 03:19:10 +0200 (CEST)
+From: MAILER-DAEMON@amelia.rivervps.com (Mail Delivery System)
+Subject: Undelivered Mail Returned to Sender
+To: ttrss@amelia.rivervps.com
+Auto-Submitted: auto-replied
+MIME-Version: 1.0
+Content-Type: multipart/report; report-type=delivery-status;
+        boundary="AAA261061.1529198350/amelia.rivervps.com"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20180617011910.AF8D7C7C@amelia.rivervps.com>
+
+This is a MIME-encapsulated message.
+
+--AAA261061.1529198350/amelia.rivervps.com
+Content-Description: Notification
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+This is the mail system at host amelia.rivervps.com.
+
+I'm sorry to have to inform you that your message could not
+be delivered to one or more recipients. It's attached below.
+
+For further assistance, please send mail to postmaster.
+
+If you do so, please include this problem report. You can
+delete your own text from the attached returned message.
+
+                   The mail system
+
+<notificaciones@andresbott.com>: mail for andresbott.com loops back to myself
+
+--AAA261061.1529198350/amelia.rivervps.com
+Content-Description: Delivery report
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; amelia.rivervps.com
+X-Postfix-Queue-ID: AAA261061
+X-Postfix-Sender: rfc822; ttrss@amelia.rivervps.com
+Arrival-Date: Sun, 17 Jun 2018 03:00:01 +0200 (CEST)
+
+Final-Recipient: rfc822; notificaciones@andresbott.com
+Original-Recipient: rfc822;notificaciones@andresbott.com
+Action: failed
+Status: 5.4.6
+Diagnostic-Code: X-Postfix; mail for andresbott.com loops back to myself
+
+--AAA261061.1529198350/amelia.rivervps.com
+Content-Description: Undelivered Message
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 8bit
+
+Return-Path: <ttrss@amelia.rivervps.com>
+Received: by amelia.rivervps.com (Postfix, from userid 1107)
+        id AAA261061; Sun, 17 Jun 2018 03:00:01 +0200 (CEST)
+From: root@amelia.rivervps.com (Cron Daemon)
+To: notificaciones@andresbott.com
+Subject: Cron <ttrss@amelia> /usr/bin/php /vhosts/ttrss/home_dir/public_html/update.php  --feeds --quiet
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <MAILTO=notificaciones@andresbott.com>
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/vhosts/ttrss/home_dir>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=ttrss>
+Message-Id: <20180617011910.AAA261061@amelia.rivervps.com>
+Date: Sun, 17 Jun 2018 03:00:01 +0200 (CEST)
+
+<pre>Exception while creating PDO object:SQLSTATE[HY000] [1045] Access denied for user 'ttrss'@'localhost' (using password: YES)</pre>
+
+--AAA261061.1529198350/amelia.rivervps.com--
+
+From ttrss@mail.amelia.rivervps.com  Sun Mar  1 23:00:04 2020
+Return-Path: <ttrss@mail.amelia.rivervps.com>
+X-Original-To: ttrss
+Delivered-To: ttrss@mail.amelia.rivervps.com
+Received: by mail.amelia.rivervps.com (Postfix, from userid 1107)
+        id 3744B850; Sun,  1 Mar 2020 23:00:03 +0100 (CET)
+From: root@mail.amelia.rivervps.com (Cron Daemon)
+To: ttrss@mail.amelia.rivervps.com
+Subject: Cron <ttrss@amelia> /usr/bin/php /vhosts/ttrss/home_dir/public_html/update.php --feeds --quiet
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/vhosts/ttrss/home_dir>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=ttrss>
+Message-Id: <20200301220003.3744B850@mail.amelia.rivervps.com>
+Date: Sun,  1 Mar 2020 23:00:03 +0100 (CET)
+
+PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 1 Can't create/write to file '/tmp/#sql_7c85_0.MAI' (Errcode: 13 "Permission denied") in /vhosts/ttrss/home_dir/public_html/classes/rssutils.php:139
+Stack trace:
+#0 /vhosts/ttrss/home_dir/public_html/classes/rssutils.php(139): PDO->query('SELECT DISTINCT...')
+#1 /vhosts/ttrss/home_dir/public_html/update.php(178): RSSUtils::update_daemon_common()
+#2 {main}
+  thrown in /vhosts/ttrss/home_dir/public_html/classes/rssutils.php on line 139
+
+From ttrss@mail.amelia.rivervps.com  Sun Mar  1 23:30:01 2020
+Return-Path: <ttrss@mail.amelia.rivervps.com>
+X-Original-To: ttrss
+Delivered-To: ttrss@mail.amelia.rivervps.com
+Received: by mail.amelia.rivervps.com (Postfix, from userid 1107)
+        id BC9F22B1A; Sun,  1 Mar 2020 23:30:01 +0100 (CET)
+From: root@mail.amelia.rivervps.com (Cron Daemon)
+To: ttrss@mail.amelia.rivervps.com
+Subject: Cron <ttrss@amelia> /usr/bin/php /vhosts/ttrss/home_dir/public_html/update.php --feeds --quiet
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/vhosts/ttrss/home_dir>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=ttrss>
+Message-Id: <20200301223001.BC9F22B1A@mail.amelia.rivervps.com>
+Date: Sun,  1 Mar 2020 23:30:01 +0100 (CET)
+
+PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 1 Can't create/write to file '/tmp/#sql_7c85_0.MAI' (Errcode: 13 "Permission denied") in /vhosts/ttrss/home_dir/public_html/classes/rssutils.php:139
+Stack trace:
+#0 /vhosts/ttrss/home_dir/public_html/classes/rssutils.php(139): PDO->query('SELECT DISTINCT...')
+#1 /vhosts/ttrss/home_dir/public_html/update.php(178): RSSUtils::update_daemon_common()
+#2 {main}
+  thrown in /vhosts/ttrss/home_dir/public_html/classes/rssutils.php on line 139
+
+From ttrss@mail.amelia.rivervps.com  Mon Mar  2 00:00:02 2020
+Return-Path: <ttrss@mail.amelia.rivervps.com>
+X-Original-To: ttrss
+Delivered-To: ttrss@mail.amelia.rivervps.com
+Received: by mail.amelia.rivervps.com (Postfix, from userid 1107)
+        id 0561C850; Mon,  2 Mar 2020 00:00:01 +0100 (CET)
+From: root@mail.amelia.rivervps.com (Cron Daemon)
+To: ttrss@mail.amelia.rivervps.com
+Subject: Cron <ttrss@amelia> /usr/bin/php /vhosts/ttrss/home_dir/public_html/update.php --feeds --quiet
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/vhosts/ttrss/home_dir>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=ttrss>
+Message-Id: <20200301230002.0561C850@mail.amelia.rivervps.com>
+Date: Mon,  2 Mar 2020 00:00:01 +0100 (CET)
+
+PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 1 Can't create/write to file '/tmp/#sql_7c85_0.MAI' (Errcode: 13 "Permission denied") in /vhosts/ttrss/home_dir/public_html/classes/rssutils.php:139
+Stack trace:
+#0 /vhosts/ttrss/home_dir/public_html/classes/rssutils.php(139): PDO->query('SELECT DISTINCT...')
+#1 /vhosts/ttrss/home_dir/public_html/update.php(178): RSSUtils::update_daemon_common()
+#2 {main}
+  thrown in /vhosts/ttrss/home_dir/public_html/classes/rssutils.php on line 139
+
+From ttrss@mail.amelia.rivervps.com  Mon Mar  2 00:30:01 2020
+Return-Path: <ttrss@mail.amelia.rivervps.com>
+X-Original-To: ttrss
+Delivered-To: ttrss@mail.amelia.rivervps.com
+Received: by mail.amelia.rivervps.com (Postfix, from userid 1107)
+        id C488110F0; Mon,  2 Mar 2020 00:30:01 +0100 (CET)
+From: root@mail.amelia.rivervps.com (Cron Daemon)
+To: ttrss@mail.amelia.rivervps.com
+Subject: Cron <ttrss@amelia> /usr/bin/php /vhosts/ttrss/home_dir/public_html/update.php --feeds --quiet
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Cron-Env: <SHELL=/bin/sh>
+X-Cron-Env: <HOME=/vhosts/ttrss/home_dir>
+X-Cron-Env: <PATH=/usr/bin:/bin>
+X-Cron-Env: <LOGNAME=ttrss>
+Message-Id: <20200301233001.C488110F0@mail.amelia.rivervps.com>
+Date: Mon,  2 Mar 2020 00:30:01 +0100 (CET)
+
+PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 1 Can't create/write to file '/tmp/#sql_7c85_0.MAI' (Errcode: 13 "Permission denied") in /vhosts/ttrss/home_dir/public_html/classes/rssutils.php:139
+Stack trace:
+#0 /vhosts/ttrss/home_dir/public_html/classes/rssutils.php(139): PDO->query('SELECT DISTINCT...')
+#1 /vhosts/ttrss/home_dir/public_html/update.php(178): RSSUtils::update_daemon_common()
+#2 {main}
+  thrown in /vhosts/ttrss/home_dir/public_html/classes/rssutils.php on line 139
